@@ -37,7 +37,7 @@ var Trex = /** @class */ (function () {
     Trex.prototype.init = function (height) {
         this.canvasCtx = this.canvas.getContext('2d');
         this.setBlinkDelay();
-        this.groundYPos = height - this.config.HEIGHT;
+        this.groundYPos = height - this.config.HEIGHT - 10; // 10 is an adjustment.
         this.yPos = this.groundYPos;
         this.minJumpHeight = this.groundYPos - this.config.MIN_JUMP_HEIGHT;
         this.draw(0, 0);
@@ -195,6 +195,10 @@ var Trex = /** @class */ (function () {
         this.midair = false;
         this.speedDrop = false;
         this.jumpCount = 0;
+    };
+    Trex.prototype.getCollisionBox = function () {
+        // Adjustments are made to the bounding box as there is a 1 pixel white border around
+        return new collisionBox_1["default"](this.xPos + 1, this.yPos + 1, this.config.WIDTH - 2, this.config.HEIGHT - 2);
     };
     /**
      * T-rex player config.

@@ -1,14 +1,10 @@
-import { IHashMap, getRandomNum } from "./globals";
+import { IHashMap, getRandomNum, arrayClone } from "./globals";
 import HorizonLine from "./horizonLine";
 import Obstacle from "./obstacle";
 import Cloud from "./cloud";
 
 /**
 * Horizon background class.
-* @param {HTMLCanvasElement} canvas
-* @param {Array.<HTMLImageElement>} images
-* @param {object} dimensions Canvas dimensions.
-* @param {number} gapCoefficient
 * @constructor
 */
 export default class Horizon {
@@ -60,7 +56,7 @@ export default class Horizon {
       */
     private init() {
         this.addCloud();
-        this.horizonLine = new HorizonLine(this.canvas, this.horizonImg);
+        this.horizonLine = new HorizonLine(this.canvas, this.horizonImg, this.dimensions);
     }
     /**
      * @param {number} deltaTime
@@ -100,47 +96,25 @@ export default class Horizon {
             this.clouds = this.clouds.filter(cloud => !cloud.remove);
         }
     }
-    /**
-     * Update the obstacle positions.
-     * @param {number} deltaTime
-     * @param {number} currentSpeed
-     */
+
     private updateObstacles(deltaTime:number, currentSpeed:number) {
         // Obstacles, move to Horizon layer.
-        var updatedObstacles = this.obstacles.slice(0);
-        for (var i = 0; i < this.obstacles.length; i++) {
-            var obstacle = this.obstacles[i];
-            obstacle.update(deltaTime, currentSpeed);
-            // Clean up existing obstacles.
-            if (obstacle.remove) {
-                updatedObstacles.shift();
-            }
-        }
-        this.obstacles = updatedObstacles;
+        this.obstacles.forEach(obstacle => obstacle.update(deltaTime, currentSpeed));
+        this.obstacles = this.obstacles.filter(obstacle => !obstacle.remove);
         if (this.obstacles.length > 0) {
             var lastObstacle = this.obstacles[this.obstacles.length - 1];
-            if (lastObstacle && !lastObstacle.followingObstacleCreated &&
-                lastObstacle.isVisible() &&
-                (lastObstacle.xPos + lastObstacle.width + lastObstacle.gap) <
-                this.dimensions.WIDTH) {
+            if (lastObstacle.isNextObstacleNeeded(this.dimensions.WIDTH)) {
                 this.addNewObstacle(currentSpeed);
-                lastObstacle.followingObstacleCreated = true;
+                lastObstacle.followingObstacleCreated = true;// TODO: remove if flag if possible.
             }
         } else {
             // Create new obstacles.
             this.addNewObstacle(currentSpeed);
         }
     }
-    /**
-     * Add a new obstacle.
-     */
+
     private addNewObstacle(currentSpeed: number) {
-        var obstacleTypeIndex =
-            getRandomNum(0, Obstacle.types.length - 1);
-        var obstacleType = Obstacle.types[obstacleTypeIndex];
-        var obstacleImg = this.obstacleImgs[obstacleType.type];
-        this.obstacles.push(new Obstacle(this.canvasCtx, obstacleType,
-            obstacleImg, this.dimensions, this.gapCoefficient, currentSpeed));
+        this.obstacles.push(Obstacle.randomCreate(this.canvasCtx, this.dimensions, this.gapCoefficient, currentSpeed));
     }
     /**
      * Reset the horizon layer.
@@ -149,15 +123,6 @@ export default class Horizon {
     public reset() {
         this.obstacles = [];
         this.horizonLine.reset();
-    }
-    /**
-     * Update the canvas width and scaling.
-     * @param {number} width Canvas width.
-     * @param {number} height Canvas height.
-     */
-    private resize(width: number, height: number) {
-        this.canvas.width = width;
-        this.canvas.height = height;
     }
     /**
      * Add a new cloud to the horizon.

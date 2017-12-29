@@ -2,7 +2,7 @@ var gulp = require("gulp");
 var ts = require("gulp-typescript");
 
 gulp.task("default", function () {
-    var tsResult = gulp.src("ts/*.ts")
+    var tsResult = gulp.src("ts/**/*.ts")
         .pipe(ts({
             sourceMap: false
         }));
@@ -10,5 +10,5 @@ gulp.task("default", function () {
 });
 
 gulp.task("watch", function () {
-    gulp.watch("ts/*.ts", ["default"]);
+    gulp.watch("ts/**/*.ts", ["default"]);
 });

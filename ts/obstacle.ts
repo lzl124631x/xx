@@ -1,5 +1,6 @@
 import { getRandomNum, IHashMap, FPS, IS_HIDPI } from "./globals";
 import CollisionBox from "./collisionBox";
+import ImageLoader from "./imageLoader";
 
 interface ObstacleType {
     type: string,
@@ -21,6 +22,16 @@ interface ObstacleType {
 * @param {number} speed
 */
 export default class Obstacle {
+    private static readonly imageSources = {
+    LDPI: {
+      'CACTUS_LARGE': '1x-obstacle-large',
+      'CACTUS_SMALL': '1x-obstacle-small'
+    },
+    HDPI: {
+      'CACTUS_LARGE': '2x-obstacle-large',
+      'CACTUS_SMALL': '2x-obstacle-small'
+    }
+  };
     /**
     * Coefficient for calculating the maximum gap.
     */
@@ -63,25 +74,27 @@ export default class Obstacle {
         ]
     }
     ];
+    // The count of cactus in one group
     public size: number = getRandomNum(1, Obstacle.MAX_OBSTACLE_LENGTH);
     public remove = false;
     public xPos: number = 0;
     public yPos: number = 0;
-    public width: number = 0;
     public collisionBoxes: CollisionBox[] = [];
     public gap = 0;
     public followingObstacleCreated: boolean = false;
-    constructor(private canvasCtx: CanvasRenderingContext2D, public typeConfig: ObstacleType, private image: HTMLImageElement, private dimensions: IHashMap<number>,
+    private width: number;
+    constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>,
         private gapCoefficient: number, speed: number) {
-        this.gapCoefficient = gapCoefficient;
-        this.size = getRandomNum(1, Obstacle.MAX_OBSTACLE_LENGTH);
-        this.remove = false;
-        this.xPos = 0;
-        this.yPos = this.typeConfig.yPos;
-        this.width = 0;
-        this.collisionBoxes = [];
-        this.gap = 0;
+        let typeName = typeConfig.type;
+        ImageLoader.load(typeName, Obstacle.imageSources["HDPI"][typeName])// TODO: enable LDPI
+
+        this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
+    }
+
+    public static randomCreate(canvasCtx: CanvasRenderingContext2D, dimensions: IHashMap<number>, gapCoefficient: number, speed: number) {
+        let type = Obstacle.types[getRandomNum(0, Obstacle.types.length - 1)]
+        return new Obstacle(canvasCtx, type, dimensions, gapCoefficient, speed);
     }
 
     /**
@@ -124,7 +137,9 @@ export default class Obstacle {
         }
         // Sprite
         var sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1));
-        this.canvasCtx.drawImage(this.image,
+
+        this.canvasCtx.drawImage(
+            ImageLoader.get(this.typeConfig.type),
             sourceX, 0,
             sourceWidth * this.size, sourceHeight,
             this.xPos, this.yPos,
@@ -171,5 +186,19 @@ export default class Obstacle {
                 collisionBoxes[i].y, collisionBoxes[i].width,
                 collisionBoxes[i].height);
         }
+    }
+
+    public isNextObstacleNeeded(width: number): boolean {
+        return !this.followingObstacleCreated && this.isVisible() &&
+                (this.xPos + this.width + this.gap) < width;
+    }
+
+    public getCollisionBox(): CollisionBox {
+        // Adjustments are made to the bounding box as there is a 1 pixel white border around
+        return new CollisionBox(
+        this.xPos + 1,
+        this.yPos + 1,
+        this.typeConfig.width * this.size - 2,
+        this.typeConfig.height - 2);
     }
 }

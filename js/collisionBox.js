@@ -10,6 +10,12 @@ var CollisionBox = /** @class */ (function () {
         this.width = width;
         this.height = height;
     }
+    CollisionBox.prototype.collideWith = function (target) {
+        return (this.x < target.x + target.width &&
+            this.x + this.width > target.x &&
+            this.y < target.y + target.height &&
+            this.height + this.y > target.y);
+    };
     return CollisionBox;
 }());
 exports["default"] = CollisionBox;

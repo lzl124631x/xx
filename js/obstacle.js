@@ -2,6 +2,7 @@
 exports.__esModule = true;
 var globals_1 = require("./globals");
 var collisionBox_1 = require("./collisionBox");
+var imageLoader_1 = require("./imageLoader");
 /**
 * Obstacle.
 * @param {HTMLCanvasCtx} canvasCtx
@@ -12,30 +13,28 @@ var collisionBox_1 = require("./collisionBox");
 * @param {number} speed
 */
 var Obstacle = /** @class */ (function () {
-    function Obstacle(canvasCtx, typeConfig, image, dimensions, gapCoefficient, speed) {
+    function Obstacle(canvasCtx, typeConfig, dimensions, gapCoefficient, speed) {
         this.canvasCtx = canvasCtx;
         this.typeConfig = typeConfig;
-        this.image = image;
         this.dimensions = dimensions;
         this.gapCoefficient = gapCoefficient;
+        // The count of cactus in one group
         this.size = globals_1.getRandomNum(1, Obstacle.MAX_OBSTACLE_LENGTH);
         this.remove = false;
         this.xPos = 0;
         this.yPos = 0;
-        this.width = 0;
         this.collisionBoxes = [];
         this.gap = 0;
         this.followingObstacleCreated = false;
-        this.gapCoefficient = gapCoefficient;
-        this.size = globals_1.getRandomNum(1, Obstacle.MAX_OBSTACLE_LENGTH);
-        this.remove = false;
-        this.xPos = 0;
-        this.yPos = this.typeConfig.yPos;
-        this.width = 0;
-        this.collisionBoxes = [];
-        this.gap = 0;
+        var typeName = typeConfig.type;
+        imageLoader_1["default"].load(typeName, Obstacle.imageSources["HDPI"][typeName]); // TODO: enable LDPI
+        this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
     }
+    Obstacle.randomCreate = function (canvasCtx, dimensions, gapCoefficient, speed) {
+        var type = Obstacle.types[globals_1.getRandomNum(0, Obstacle.types.length - 1)];
+        return new Obstacle(canvasCtx, type, dimensions, gapCoefficient, speed);
+    };
     /**
       * Initialise the DOM for the obstacle.
       * @param {number} speed
@@ -76,7 +75,7 @@ var Obstacle = /** @class */ (function () {
         }
         // Sprite
         var sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1));
-        this.canvasCtx.drawImage(this.image, sourceX, 0, sourceWidth * this.size, sourceHeight, this.xPos, this.yPos, this.typeConfig.width * this.size, this.typeConfig.height);
+        this.canvasCtx.drawImage(imageLoader_1["default"].get(this.typeConfig.type), sourceX, 0, sourceWidth * this.size, sourceHeight, this.xPos, this.yPos, this.typeConfig.width * this.size, this.typeConfig.height);
     };
     /**
      * Obstacle frame update.
@@ -116,6 +115,24 @@ var Obstacle = /** @class */ (function () {
         var collisionBoxes = this.typeConfig.collisionBoxes;
         for (var i = collisionBoxes.length - 1; i >= 0; i--) {
             this.collisionBoxes[i] = new collisionBox_1["default"](collisionBoxes[i].x, collisionBoxes[i].y, collisionBoxes[i].width, collisionBoxes[i].height);
+        }
+    };
+    Obstacle.prototype.isNextObstacleNeeded = function (width) {
+        return !this.followingObstacleCreated && this.isVisible() &&
+            (this.xPos + this.width + this.gap) < width;
+    };
+    Obstacle.prototype.getCollisionBox = function () {
+        // Adjustments are made to the bounding box as there is a 1 pixel white border around
+        return new collisionBox_1["default"](this.xPos + 1, this.yPos + 1, this.typeConfig.width * this.size - 2, this.typeConfig.height - 2);
+    };
+    Obstacle.imageSources = {
+        LDPI: {
+            'CACTUS_LARGE': '1x-obstacle-large',
+            'CACTUS_SMALL': '1x-obstacle-small'
+        },
+        HDPI: {
+            'CACTUS_LARGE': '2x-obstacle-large',
+            'CACTUS_SMALL': '2x-obstacle-small'
         }
     };
     /**

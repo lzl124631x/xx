@@ -8,19 +8,14 @@ export interface IHashMap<T> {
     [key: string]: T;
 }
 
-/**
- * Return the current timestamp.
- */
 export function getTimeStamp(): number {
     return IS_IOS ? new Date().getTime() : performance.now();
 }
 
-/**
- * Get random number.
- * @param {number} min
- * @param {number} max
- * @param {number}
- */
 export function getRandomNum(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+}
+
+export function arrayClone(array: any[]) {
+    return array.slice(0);
+}

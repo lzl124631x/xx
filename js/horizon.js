@@ -1,15 +1,10 @@
 "use strict";
 exports.__esModule = true;
-var globals_1 = require("./globals");
 var horizonLine_1 = require("./horizonLine");
 var obstacle_1 = require("./obstacle");
 var cloud_1 = require("./cloud");
 /**
 * Horizon background class.
-* @param {HTMLCanvasElement} canvas
-* @param {Array.<HTMLImageElement>} images
-* @param {object} dimensions Canvas dimensions.
-* @param {number} gapCoefficient
 * @constructor
 */
 var Horizon = /** @class */ (function () {
@@ -45,7 +40,7 @@ var Horizon = /** @class */ (function () {
       */
     Horizon.prototype.init = function () {
         this.addCloud();
-        this.horizonLine = new horizonLine_1["default"](this.canvas, this.horizonImg);
+        this.horizonLine = new horizonLine_1["default"](this.canvas, this.horizonImg, this.dimensions);
     };
     /**
      * @param {number} deltaTime
@@ -85,31 +80,15 @@ var Horizon = /** @class */ (function () {
             this.clouds = this.clouds.filter(function (cloud) { return !cloud.remove; });
         }
     };
-    /**
-     * Update the obstacle positions.
-     * @param {number} deltaTime
-     * @param {number} currentSpeed
-     */
     Horizon.prototype.updateObstacles = function (deltaTime, currentSpeed) {
         // Obstacles, move to Horizon layer.
-        var updatedObstacles = this.obstacles.slice(0);
-        for (var i = 0; i < this.obstacles.length; i++) {
-            var obstacle = this.obstacles[i];
-            obstacle.update(deltaTime, currentSpeed);
-            // Clean up existing obstacles.
-            if (obstacle.remove) {
-                updatedObstacles.shift();
-            }
-        }
-        this.obstacles = updatedObstacles;
+        this.obstacles.forEach(function (obstacle) { return obstacle.update(deltaTime, currentSpeed); });
+        this.obstacles = this.obstacles.filter(function (obstacle) { return !obstacle.remove; });
         if (this.obstacles.length > 0) {
             var lastObstacle = this.obstacles[this.obstacles.length - 1];
-            if (lastObstacle && !lastObstacle.followingObstacleCreated &&
-                lastObstacle.isVisible() &&
-                (lastObstacle.xPos + lastObstacle.width + lastObstacle.gap) <
-                    this.dimensions.WIDTH) {
+            if (lastObstacle.isNextObstacleNeeded(this.dimensions.WIDTH)) {
                 this.addNewObstacle(currentSpeed);
-                lastObstacle.followingObstacleCreated = true;
+                lastObstacle.followingObstacleCreated = true; // TODO: remove if flag if possible.
             }
         }
         else {
@@ -117,14 +96,8 @@ var Horizon = /** @class */ (function () {
             this.addNewObstacle(currentSpeed);
         }
     };
-    /**
-     * Add a new obstacle.
-     */
     Horizon.prototype.addNewObstacle = function (currentSpeed) {
-        var obstacleTypeIndex = globals_1.getRandomNum(0, obstacle_1["default"].types.length - 1);
-        var obstacleType = obstacle_1["default"].types[obstacleTypeIndex];
-        var obstacleImg = this.obstacleImgs[obstacleType.type];
-        this.obstacles.push(new obstacle_1["default"](this.canvasCtx, obstacleType, obstacleImg, this.dimensions, this.gapCoefficient, currentSpeed));
+        this.obstacles.push(obstacle_1["default"].randomCreate(this.canvasCtx, this.dimensions, this.gapCoefficient, currentSpeed));
     };
     /**
      * Reset the horizon layer.
@@ -133,15 +106,6 @@ var Horizon = /** @class */ (function () {
     Horizon.prototype.reset = function () {
         this.obstacles = [];
         this.horizonLine.reset();
-    };
-    /**
-     * Update the canvas width and scaling.
-     * @param {number} width Canvas width.
-     * @param {number} height Canvas height.
-     */
-    Horizon.prototype.resize = function (width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
     };
     /**
      * Add a new cloud to the horizon.

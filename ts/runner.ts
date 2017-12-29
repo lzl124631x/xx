@@ -55,7 +55,7 @@ export default class Runner {
   public static readonly config: RunnerConfig = {
     ACCELERATION: 0.001, // Acceleration of T-Rex
     BG_CLOUD_SPEED: 0.2,
-    BOTTOM_PAD: 10, // Bottom padding of canvas
+    BOTTOM_PAD: 50, // Bottom padding of canvas
     CLEAR_TIME: 3000,
     CLOUD_FREQUENCY: 0.5,
     GAMEOVER_CLEAR_TIME: 750,
@@ -71,22 +71,11 @@ export default class Runner {
     SPEED: 6
   };
   /**
-   * Default dimensions.
-   * @enum {string}
-   */
-  public static readonly defaultDimensions = {
-    WIDTH: DEFAULT_WIDTH,
-    HEIGHT: 150
-  };
-
-  /**
    * Image source urls.
    * @enum {array.<object>}
    */
   private static readonly imageSources = {
     LDPI: [
-      { name: 'CACTUS_LARGE', id: '1x-obstacle-large' },
-      { name: 'CACTUS_SMALL', id: '1x-obstacle-small' },
       { name: 'CLOUD', id: '1x-cloud' },
       { name: 'HORIZON', id: '1x-horizon' },
       { name: 'RESTART', id: '1x-restart' },
@@ -94,8 +83,6 @@ export default class Runner {
       { name: 'TREX', id: '1x-trex' }
     ],
     HDPI: [
-      { name: 'CACTUS_LARGE', id: '2x-obstacle-large' },
-      { name: 'CACTUS_SMALL', id: '2x-obstacle-small' },
       { name: 'CLOUD', id: '2x-cloud' },
       { name: 'HORIZON', id: '2x-horizon' },
       { name: 'RESTART', id: '2x-restart' },
@@ -144,7 +131,7 @@ export default class Runner {
   private horizon: Horizon = null;
 
   private config = Runner.config;
-  private dimensions = Runner.defaultDimensions;
+  private dimensions = { WIDTH: 0, HEIGHT: 0 };
   private canvas: HTMLCanvasElement = null;
   private canvasCtx: CanvasRenderingContext2D = null;
   private tRex: Trex = null;
@@ -197,15 +184,16 @@ export default class Runner {
    * Game initialiser.
    */
   private init() {
+    this.dimensions.WIDTH = this.canvas.width;
+    this.dimensions.HEIGHT = this.canvas.height - Runner.config.BOTTOM_PAD;
     this.setSpeed();
     // Horizon contains clouds, obstacles and the ground.
-    this.horizon = new Horizon(this.canvas, this.images, this.dimensions,
-      this.config.GAP_COEFFICIENT);
+    this.horizon = new Horizon(this.canvas, this.images, this.dimensions, this.config.GAP_COEFFICIENT);
     // Distance meter
     this.distanceMeter = new DistanceMeter(this.canvas,
       this.images.TEXT_SPRITE, this.dimensions.WIDTH);
     // Draw t-rex
-    this.tRex = new Trex(this.canvas, this.images.TREX, Runner.defaultDimensions.HEIGHT - Runner.config.BOTTOM_PAD);
+    this.tRex = new Trex(this.canvas, this.images.TREX, this.dimensions.HEIGHT);
 
     this.startListening();
     this.raq();
@@ -305,7 +293,7 @@ export default class Runner {
       }
       // Check for collisions.
       var collision = hasObstacles &&
-        checkForCollision(this.horizon.obstacles[0], this.tRex, Runner.defaultDimensions.WIDTH);
+        checkForCollision(this.horizon.obstacles[0], this.tRex);
       if (!collision) {
         this.distanceRan += this.currentSpeed * deltaTime / this.msPerFrame;
         if (this.currentSpeed < this.config.MAX_SPEED) {
@@ -333,22 +321,21 @@ export default class Runner {
    * Bind relevant key / mouse / touch listeners.
    */
   private startListening() {
-    this.canvas.addEventListener(Runner.events.TOUCHSTART, this.onKeyDown.bind(this));
-    this.canvas.addEventListener(Runner.events.TOUCHEND, this.onKeyUp.bind(this));
+    this.canvas.addEventListener(Runner.events.TOUCHSTART, this.onTouchStart.bind(this));
+    this.canvas.addEventListener(Runner.events.TOUCHEND, this.onTouchEnd.bind(this));
   }
   /**
    * Remove all listeners.
    */
   private stopListening() {
-    this.canvas.removeEventListener(Runner.events.TOUCHSTART, this.onKeyDown);
-    this.canvas.removeEventListener(Runner.events.TOUCHEND, this.onKeyUp);
+    this.canvas.removeEventListener(Runner.events.TOUCHSTART, this.onTouchStart);
+    this.canvas.removeEventListener(Runner.events.TOUCHEND, this.onTouchEnd);
   }
-  /**
-   * Process keydown.
-   */
-  private onKeyDown(e: KeyboardEvent) {
-    if (!this.crashed && (Runner.keycodes.JUMP[String(e.keyCode)] ||
-      e.type == Runner.events.TOUCHSTART)) {
+
+  private onTouchStart(e: KeyboardEvent) {
+    if (this.crashed) {
+      this.restart();
+    } else {
       if (!this.activated) {
         this.activated = true;
       }
@@ -356,30 +343,18 @@ export default class Runner {
         this.tRex.startJump();
       }
     }
-    if (this.crashed && e.type == Runner.events.TOUCHSTART) {
-      this.restart();
-    }
   }
-  /**
-   * Process key up.
-   */
-  private onKeyUp(e: KeyboardEvent) {
-    var keyCode = String(e.keyCode);
-    var isjumpKey = Runner.keycodes.JUMP[keyCode] ||
-      e.type == Runner.events.TOUCHEND ||
-      e.type == Runner.events.MOUSEDOWN;
-    if (this.isRunning() && isjumpKey) {
+
+  private onTouchEnd(e: KeyboardEvent) {
+    if (this.isRunning()) {
       this.tRex.endJump();
     } else if (this.crashed) {
       // Check that enough time has elapsed before allowing jump key to restart.
       var deltaTime = getTimeStamp() - this.time;
-      if (Runner.keycodes.RESTART[keyCode] ||
-        (e.type == Runner.events.MOUSEUP && e.target == this.canvas) ||
-        (deltaTime >= this.config.GAMEOVER_CLEAR_TIME &&
-          Runner.keycodes.JUMP[keyCode])) {
+      if (deltaTime >= this.config.GAMEOVER_CLEAR_TIME) {
         this.restart();
       }
-    } else if (this.paused && isjumpKey) {
+    } else if (this.paused) {
       this.play();
     }
   }

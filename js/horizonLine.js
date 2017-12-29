@@ -4,27 +4,20 @@ var globals_1 = require("./globals");
 /**
  * Horizon Line.
  * Consists of two connecting lines. Randomly assigns a flat / bumpy horizon.
- * @param {HTMLCanvasElement} canvas
- * @param {HTMLImage} bgImg Horizon line sprite.
- * @constructor
  */
 var HorizonLine = /** @class */ (function () {
-    function HorizonLine(canvas, image) {
+    function HorizonLine(canvas, image, dimensions) {
         this.canvas = canvas;
         this.image = image;
         this.sourceDimensions = {};
-        this.dimensions = HorizonLine.dimensions;
-        this.sourceXPos = [0, HorizonLine.dimensions.WIDTH];
+        this.dimensions = HorizonLine.defaultDimensions;
+        this.sourceXPos = [0, 600]; // TODO: this 600 is dependent to image size.
         this.xPos = [];
         this.yPos = 0;
         this.bumpThreshold = 0.5;
         this.canvasCtx = canvas.getContext('2d');
-        this.sourceDimensions = {};
-        this.dimensions = HorizonLine.dimensions;
-        this.sourceXPos = [0, this.dimensions.WIDTH];
-        this.xPos = [];
-        this.yPos = 0;
-        this.bumpThreshold = 0.5;
+        this.dimensions.WIDTH = dimensions.WIDTH;
+        this.dimensions.YPOS = dimensions.HEIGHT - 20; // TODO: this 20 is dependent to outer settings.
         this.setSourceDimensions();
         this.draw();
     }
@@ -32,21 +25,21 @@ var HorizonLine = /** @class */ (function () {
       * Set the source dimensions of the horizon line.
       */
     HorizonLine.prototype.setSourceDimensions = function () {
-        for (var dimension in HorizonLine.dimensions) {
+        for (var dimension in HorizonLine.defaultDimensions) {
             if (globals_1.IS_HIDPI) {
                 if (dimension != 'YPOS') {
                     this.sourceDimensions[dimension] =
-                        HorizonLine.dimensions[dimension] * 2;
+                        HorizonLine.defaultDimensions[dimension] * 2;
                 }
             }
             else {
                 this.sourceDimensions[dimension] =
-                    HorizonLine.dimensions[dimension];
+                    HorizonLine.defaultDimensions[dimension];
             }
-            this.dimensions[dimension] = HorizonLine.dimensions[dimension];
+            this.dimensions[dimension] = HorizonLine.defaultDimensions[dimension];
         }
-        this.xPos = [0, HorizonLine.dimensions.WIDTH];
-        this.yPos = HorizonLine.dimensions.YPOS;
+        this.xPos = [0, this.dimensions.WIDTH];
+        this.yPos = this.dimensions.YPOS;
     };
     /**
      * Return the crop x position of a type.
@@ -97,14 +90,10 @@ var HorizonLine = /** @class */ (function () {
      */
     HorizonLine.prototype.reset = function () {
         this.xPos[0] = 0;
-        this.xPos[1] = HorizonLine.dimensions.WIDTH;
+        this.xPos[1] = this.dimensions.WIDTH;
     };
-    /**
-    * Horizon line dimensions.
-    * @enum {number}
-    */
-    HorizonLine.dimensions = {
-        WIDTH: 600,
+    HorizonLine.defaultDimensions = {
+        WIDTH: 0,
         HEIGHT: 12,
         YPOS: 127
     };
