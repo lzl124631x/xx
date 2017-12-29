@@ -1,7 +1,6 @@
 "use strict";
 exports.__esModule = true;
 exports.IS_IOS = window.navigator.userAgent.indexOf('UIWebViewForStaticFileContent') > -1;
-exports.IS_MOBILE = false;
 exports.FPS = 60;
 exports.IS_HIDPI = window.devicePixelRatio > 1;
 /**

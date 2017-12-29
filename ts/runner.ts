@@ -1,4 +1,4 @@
-import { IHashMap, IS_HIDPI, IS_MOBILE, FPS, IS_IOS, getTimeStamp, getRandomNum } from "./globals";
+import { IHashMap, IS_HIDPI, FPS, IS_IOS, getTimeStamp, getRandomNum } from "./globals";
 import Trex from "./tRex";
 import Horizon from "./horizon";
 import DistanceMeter from "./distanceMeter";
@@ -12,7 +12,7 @@ const DEFAULT_WIDTH = 600;
  * @param {number} duration Duration of the vibration in milliseconds.
  */
 function vibrate(duration: number) {
-  if (IS_MOBILE && window.navigator.vibrate) {
+  if (window.navigator.vibrate) {
     window.navigator.vibrate(duration);
   }
 }
@@ -78,15 +78,7 @@ export default class Runner {
     WIDTH: DEFAULT_WIDTH,
     HEIGHT: 150
   };
-  /**
-   * CSS class names.
-   * @enum {string}
-   */
-  // TODO: this classes only used within this module.
-  private static readonly classes: IHashMap<string> = {
-    CRASHED: 'crashed',
-    ICON: 'icon-offline'
-  };
+
   /**
    * Image source urls.
    * @enum {array.<object>}

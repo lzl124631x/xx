@@ -1,7 +1,6 @@
 export const IS_IOS =
     window.navigator.userAgent.indexOf('UIWebViewForStaticFileContent') > -1;
 
-export const IS_MOBILE = false;
 export const FPS = 60;
 export const IS_HIDPI = window.devicePixelRatio > 1;
 

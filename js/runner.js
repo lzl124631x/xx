@@ -13,7 +13,7 @@ var DEFAULT_WIDTH = 600;
  * @param {number} duration Duration of the vibration in milliseconds.
  */
 function vibrate(duration) {
-    if (globals_1.IS_MOBILE && window.navigator.vibrate) {
+    if (window.navigator.vibrate) {
         window.navigator.vibrate(duration);
     }
 }
@@ -366,15 +366,6 @@ var Runner = /** @class */ (function () {
     Runner.defaultDimensions = {
         WIDTH: DEFAULT_WIDTH,
         HEIGHT: 150
-    };
-    /**
-     * CSS class names.
-     * @enum {string}
-     */
-    // TODO: this classes only used within this module.
-    Runner.classes = {
-        CRASHED: 'crashed',
-        ICON: 'icon-offline'
     };
     /**
      * Image source urls.
