@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+/// <reference path="./wx.d.ts"/>
 var globals_1 = require("./globals");
 var tRex_1 = require("./tRex");
 var horizon_1 = require("./horizon");
@@ -15,6 +16,9 @@ var DEFAULT_WIDTH = 600;
 function vibrate(duration) {
     if (window.navigator.vibrate) {
         window.navigator.vibrate(duration);
+    }
+    if (wx && wx.vibrateLong) {
+        wx.vibrateLong();
     }
 }
 /**
@@ -89,7 +93,6 @@ var Runner = /** @class */ (function () {
     Runner.prototype.init = function () {
         this.dimensions.WIDTH = this.canvas.width;
         this.dimensions.HEIGHT = this.canvas.height - Runner.config.BOTTOM_PAD;
-        this.setSpeed();
         // Horizon contains clouds, obstacles and the ground.
         this.horizon = new horizon_1["default"](this.canvas, this.images, this.dimensions, this.config.GAP_COEFFICIENT);
         // Distance meter
@@ -116,24 +119,9 @@ var Runner = /** @class */ (function () {
                     this.tRex.setJumpVelocity(value);
                     break;
                 case 'SPEED':
-                    this.setSpeed(value);
+                    this.currentSpeed = value;
                     break;
             }
-        }
-    };
-    /**
-     * Sets the game speed. Adjust the speed accordingly if on a smaller screen.
-     */
-    Runner.prototype.setSpeed = function (opt_speed) {
-        var speed = opt_speed || this.currentSpeed;
-        // Reduce the speed on smaller mobile screens.
-        if (this.dimensions.WIDTH < DEFAULT_WIDTH) {
-            var mobileSpeed = speed * this.dimensions.WIDTH / DEFAULT_WIDTH *
-                this.config.MOBILE_SPEED_COEFFICIENT;
-            this.currentSpeed = mobileSpeed > speed ? speed : mobileSpeed;
-        }
-        else if (opt_speed) {
-            this.currentSpeed = opt_speed;
         }
     };
     /**
@@ -162,7 +150,8 @@ var Runner = /** @class */ (function () {
         this.playCount++;
     };
     Runner.prototype.clearCanvas = function () {
-        this.canvasCtx.clearRect(0, 0, this.dimensions.WIDTH, this.dimensions.HEIGHT);
+        this.canvasCtx.fillStyle = "#fff";
+        this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     };
     /**
      * Update the game frame.
@@ -217,16 +206,10 @@ var Runner = /** @class */ (function () {
             this.raq();
         }
     };
-    /**
-     * Bind relevant key / mouse / touch listeners.
-     */
     Runner.prototype.startListening = function () {
         this.canvas.addEventListener(Runner.events.TOUCHSTART, this.onTouchStart.bind(this));
         this.canvas.addEventListener(Runner.events.TOUCHEND, this.onTouchEnd.bind(this));
     };
-    /**
-     * Remove all listeners.
-     */
     Runner.prototype.stopListening = function () {
         this.canvas.removeEventListener(Runner.events.TOUCHSTART, this.onTouchStart);
         this.canvas.removeEventListener(Runner.events.TOUCHEND, this.onTouchEnd);
@@ -268,16 +251,9 @@ var Runner = /** @class */ (function () {
             this.raqId = requestAnimationFrame(this.update.bind(this));
         }
     };
-    /**
-     * Whether the game is running.
-     * @return {boolean}
-     */
     Runner.prototype.isRunning = function () {
         return !!this.raqId;
     };
-    /**
-     * Game over state.
-     */
     Runner.prototype.gameOver = function () {
         vibrate(200);
         this.stop();

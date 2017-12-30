@@ -2,7 +2,9 @@ export const IS_IOS =
     window.navigator.userAgent.indexOf('UIWebViewForStaticFileContent') > -1;
 
 export const FPS = 60;
-export const IS_HIDPI = window.devicePixelRatio > 1;
+// TODO: 2x-horizon is too large (2400x24) that exceeds the MAX_TEXTURE_SIZE 2048.
+// Disabled HDPI temporarily.
+export const IS_HIDPI = false;//window.devicePixelRatio > 1;
 
 export interface IHashMap<T> {
     [key: string]: T;

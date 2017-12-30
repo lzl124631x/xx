@@ -86,7 +86,7 @@ export default class Obstacle {
     constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>,
         private gapCoefficient: number, speed: number) {
         let typeName = typeConfig.type;
-        ImageLoader.load(typeName, Obstacle.imageSources["HDPI"][typeName])// TODO: enable LDPI
+        ImageLoader.load(typeName, Obstacle.imageSources["LDPI"][typeName])// TODO: enable LDPI and HDPI.
 
         this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);

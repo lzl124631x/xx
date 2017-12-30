@@ -27,7 +27,7 @@ var Obstacle = /** @class */ (function () {
         this.gap = 0;
         this.followingObstacleCreated = false;
         var typeName = typeConfig.type;
-        imageLoader_1["default"].load(typeName, Obstacle.imageSources["HDPI"][typeName]); // TODO: enable LDPI
+        imageLoader_1["default"].load(typeName, Obstacle.imageSources["LDPI"][typeName]); // TODO: enable LDPI and HDPI.
         this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
     }
