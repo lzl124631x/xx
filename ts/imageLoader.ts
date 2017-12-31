@@ -5,9 +5,6 @@ class ImageLoader {
     public load(id: string): HTMLImageElement {
         if (this.images[id]) return this.images[id];
         let image = new Image();
-        image.onerror = function (e) {
-            console.log("failed", id, JSON.stringify(e))
-        }
         image.src = `asset/image/${id}.png`;
         this.images[id] = image;
         return image;

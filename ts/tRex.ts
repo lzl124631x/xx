@@ -3,6 +3,9 @@ import Runner from "./runner";
 import { IHashMap, FPS, getTimeStamp, IS_HIDPI } from "./globals";
 import ImageLoader from "./imageLoader";
 
+// Length in ms of closing-eye period in each blink
+const BLINK_LENGTH = 200
+
 export default class Trex {
   private canvasCtx: CanvasRenderingContext2D;
   public xPos: number = 0;
@@ -71,10 +74,9 @@ export default class Trex {
   /**
    * Animation config for different states.
    */
-  private static readonly animFrames: IHashMap<{ frames: number[], msPerFrame: number }> = {
+  private static readonly animFrames: IHashMap<{ frames: number[], msPerFrame?: number }> = {
     WAITING: {
-      frames: [44, 0], // 44 is close-eye; 0 is open-eye.
-      msPerFrame: 1000 / 3
+      frames: [0, 44], // 0 is open-eye, 44 is close-eye
     },
     RUNNING: {
       frames: [88, 132],
@@ -99,7 +101,7 @@ export default class Trex {
    */
   private init(height: number) {
     this.canvasCtx = this.canvas.getContext('2d');
-    this.setBlinkDelay();
+    this.newBlink();
     this.groundYPos = height - this.config.HEIGHT - 10;// 10 is an adjustment.
     this.yPos = this.groundYPos;
     this.minJumpHeight = this.groundYPos - this.config.MIN_JUMP_HEIGHT;
@@ -119,57 +121,42 @@ export default class Trex {
    * @param {!number} deltaTime
    * @param {Trex.status} status Optional status to switch to.
    */
-  public update(deltaTime: number, opt_status?: string) {
+  public update(deltaTime: number, status?: string) {
     this.timer += deltaTime;
     // Update the status.
-    if (opt_status) {
-      this.status = opt_status;
+    if (status) {
+      this.status = status;
       this.currentFrame = 0;
-      this.msPerFrame = Trex.animFrames[opt_status].msPerFrame;
-      this.currentAnimFrames = Trex.animFrames[opt_status].frames;
-      if (opt_status == Trex.status.WAITING) {
-        this.animStartTime = getTimeStamp();
-        this.setBlinkDelay();
-      }
+      this.msPerFrame = Trex.animFrames[status].msPerFrame;
+      this.currentAnimFrames = Trex.animFrames[status].frames;
     }
     // Game intro animation, T-rex moves in from the left.
     if (this.playingIntro && this.xPos < this.config.START_X_POS) {
       this.xPos += Math.round((this.config.START_X_POS / this.config.INTRO_DURATION) * deltaTime);
     }
     if (this.status == Trex.status.WAITING) {
-      this.blink(getTimeStamp());
-    } else {
-      this.draw(this.currentAnimFrames[this.currentFrame], 0);
-    }
-    // Update the frame position.
-    if (this.timer >= this.msPerFrame) {
+      this.blink();
+    } else if (this.timer >= this.msPerFrame) {
       this.currentFrame = this.currentFrame ==
         this.currentAnimFrames.length - 1 ? 0 : this.currentFrame + 1;
       this.timer = 0;
     }
+  }
+  public render() {
+    this.draw(this.currentAnimFrames[this.currentFrame], 0);
   }
   /**
    * Draw the t-rex to a particular position.
    * @param {number} x
    * @param {number} y
    */
-  public draw(x: number, y: number) {
-    var sourceX = x;
-    var sourceY = y;
-    var sourceWidth = this.config.WIDTH;
-    var sourceHeight = this.config.HEIGHT;
-    if (IS_HIDPI) {
-      sourceX *= 2;
-      sourceY *= 2;
-      sourceWidth *= 2;
-      sourceHeight *= 2;
-    }
+  private draw(x: number, y: number) {
     this.canvasCtx.drawImage(
       ImageLoader.get("trex"),
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
+      x,
+      y,
+      this.config.WIDTH,
+      this.config.HEIGHT,
       this.xPos,
       this.yPos,
       this.config.WIDTH,
@@ -178,22 +165,18 @@ export default class Trex {
   /**
    * Sets a random time for the blink to happen.
    */
-  private setBlinkDelay() {
+  private newBlink() {
+    this.currentFrame = 0; // open eye
     this.blinkDelay = Math.ceil(Math.random() * Trex.BLINK_TIMING);
+    this.animStartTime = getTimeStamp();
   }
-  /**
-   * Make t-rex blink at random intervals.
-   * @param {number} time Current time in milliseconds.
-   */
-  private blink(time: number) {
-    var deltaTime = time - this.animStartTime;
+
+  private blink() {
+    var deltaTime = getTimeStamp() - this.animStartTime;
     if (deltaTime >= this.blinkDelay) {
-      this.draw(this.currentAnimFrames[this.currentFrame], 0);
-      if (this.currentFrame == 1) {
-        // Set new random delay to blink.
-        this.setBlinkDelay();
-        this.animStartTime = time;
-      }
+      this.newBlink();
+    } else if (deltaTime + BLINK_LENGTH >= this.blinkDelay) {
+      this.currentFrame = 1; // close eye
     }
   }
   /**
@@ -270,9 +253,9 @@ export default class Trex {
   public getCollisionBox(): CollisionBox {
     // Adjustments are made to the bounding box as there is a 1 pixel white border around
     return new CollisionBox(
-        this.xPos + 1,
-        this.yPos + 1,
-        this.config.WIDTH - 2,
-        this.config.HEIGHT - 2);
+      this.xPos + 1,
+      this.yPos + 1,
+      this.config.WIDTH - 2,
+      this.config.HEIGHT - 2);
   }
 }

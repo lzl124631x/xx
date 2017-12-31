@@ -7,7 +7,6 @@ import GameOverPanel from "./gameOverPanel";
 import { checkForCollision } from "./collision";
 import SoundLoader, { SoundId } from "./soundLoader";
 
-const DEFAULT_WIDTH = 600;
 /**
  * Vibrate on mobile devices.
  * @param {number} duration Duration of the vibration in milliseconds.
@@ -42,7 +41,6 @@ interface RunnerConfig {
   CLEAR_TIME: number,
   CLOUD_FREQUENCY: number,
   GAMEOVER_CLEAR_TIME: number,
-  GAP_COEFFICIENT: number,
   GRAVITY: number,
   INITIAL_JUMP_VELOCITY: number,
   MAX_CLOUDS: number,
@@ -72,7 +70,6 @@ class Runner {
     CLEAR_TIME: 3000,
     CLOUD_FREQUENCY: 0.5,
     GAMEOVER_CLEAR_TIME: 750,
-    GAP_COEFFICIENT: 0.6,
     GRAVITY: 0.6,
     INITIAL_JUMP_VELOCITY: 12,
     MAX_CLOUDS: 6,
@@ -97,18 +94,16 @@ class Runner {
   private obstacles: string[] = [];
   // `started` is true after first activation
   private started: boolean = false;
-  // `activated` is false only after crashed and before restart
+  // `activated` is false only after gameover and before restart
   private activated: boolean = false;
-  // `crashed` is true when game over.
-  private crashed: boolean = false;
+  // `isGameOver` is true when game over.
+  private isGameOver: boolean = false;
   // `paused` is true when game over.
   private paused: boolean = false;
   // # of rounds played.
   private playCount: number = 0;
   private gameOverPanel: GameOverPanel = null;
   private playingIntro: boolean = false;
-  // `drawPending` is true after a new requestAnimationFrame is fired and not yet executed.
-  private drawPending: boolean = false;
   private raqId: number = 0;
 
   public start(canvas: HTMLCanvasElement) {
@@ -123,17 +118,12 @@ class Runner {
   private init() {
     this.dimensions.WIDTH = this.canvas.width;
     this.dimensions.HEIGHT = this.canvas.height - this.config.BOTTOM_PAD;
-    // Horizon contains clouds, obstacles and the ground.
-    this.horizon = new Horizon(this.canvas, this.dimensions, this.config.GAP_COEFFICIENT);
-    // Distance meter
-    this.distanceMeter = new DistanceMeter(
-      this.canvas,
-      this.dimensions.WIDTH);
-    // Draw t-rex
+    this.horizon = new Horizon(this.canvas, this.dimensions);
+    this.distanceMeter = new DistanceMeter(this.canvas, this.dimensions.WIDTH);
     this.tRex = new Trex(this.canvas, this.dimensions.HEIGHT);
 
     this.startListening();
-    this.raq();
+    this.startLoop();
   }
 
   /**
@@ -163,13 +153,13 @@ class Runner {
    * Canvas container width expands out to the full width.
    */
   private playIntro() {
-    if (!this.started && !this.crashed) {
+    if (!this.started && !this.isGameOver) {
       this.playingIntro = true;
       this.tRex.playingIntro = true;
       this.activated = true;
       this.started = true;
       setTimeout(this.startGame.bind(this), 1000);
-    } else if (this.crashed) {
+    } else if (this.isGameOver) {
       this.restart();
     }
   }
@@ -191,7 +181,7 @@ class Runner {
    * Update the game frame.
    */
   private update() {
-    this.drawPending = false;
+    // TODO: add drawPending logic.
     var now = getTimeStamp();
     var deltaTime = now - (this.time || now);
     this.time = now;
@@ -234,9 +224,8 @@ class Runner {
         SoundLoader.play(SoundId.SCORE_REACHED);
       }
     }
-    if (!this.crashed) {
+    if (!this.isGameOver) {
       this.tRex.update(deltaTime);
-      this.raq();
     }
   }
 
@@ -251,7 +240,7 @@ class Runner {
   }
 
   private onTouchStart(e: KeyboardEvent) {
-    if (this.crashed) {
+    if (this.isGameOver) {
       this.restart();
     } else {
       if (!this.activated) {
@@ -267,7 +256,7 @@ class Runner {
   private onTouchEnd(e: KeyboardEvent) {
     if (this.isRunning()) {
       this.tRex.endJump();
-    } else if (this.crashed) {
+    } else if (this.isGameOver) {
       // Check that enough time has elapsed before allowing jump key to restart.
       var deltaTime = getTimeStamp() - this.time;
       if (deltaTime >= this.config.GAMEOVER_CLEAR_TIME) {
@@ -281,11 +270,18 @@ class Runner {
   /**
    * RequestAnimationFrame wrapper.
    */
-  private raq() {
-    if (!this.drawPending) {
-      this.drawPending = true;
-      this.raqId = requestAnimationFrame(this.update.bind(this));
-    }
+  private loop() {
+      this.update();
+      this.render();
+
+      if (this.isGameOver) {
+        return;
+      }
+      this.startLoop();
+  }
+
+  private render() {
+    this.tRex.render();
   }
 
   private isRunning() {
@@ -296,7 +292,7 @@ class Runner {
     SoundLoader.play(SoundId.CRASH);
     vibrate(200);
     this.stop();
-    this.crashed = true;
+    this.isGameOver = true;
     this.distanceMeter.acheivement = false;
     this.tRex.update(100, Trex.status.CRASHED);
     // Game over panel.
@@ -322,12 +318,12 @@ class Runner {
   }
 
   private play() {
-    if (!this.crashed) {
+    if (!this.isGameOver) {
       this.activated = true;
       this.paused = false;
       this.tRex.update(0, Trex.status.RUNNING);
       this.time = getTimeStamp();
-      this.update();
+      this.startLoop();
     }
   }
 
@@ -336,15 +332,19 @@ class Runner {
       this.playCount++;
       this.runningTime = 0;
       this.activated = true;
-      this.crashed = false;
+      this.isGameOver = false;
       this.distanceRan = 0;
       this.time = getTimeStamp();
       this.clearCanvas();
       this.distanceMeter.reset(); // TODO: original code is (this.highestScore)
       this.horizon.reset();
       this.tRex.reset();
-      this.update();
+      this.startLoop();
     }
+  }
+
+  private startLoop() {
+    this.raqId = requestAnimationFrame(this.loop.bind(this));
   }
 }
 

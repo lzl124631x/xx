@@ -4,8 +4,7 @@ import Obstacle from "./obstacle";
 import Cloud from "./cloud";
 
 /**
-* Horizon background class.
-* @constructor
+* Horizon contains clouds, obstacles and the ground.
 */
 export default class Horizon {
     private canvasCtx: CanvasRenderingContext2D;
@@ -25,7 +24,7 @@ export default class Horizon {
     private cloudSpeed = this.config.BG_CLOUD_SPEED;
     // Horizon
     private horizonLine: HorizonLine = null;
-    constructor(private canvas: HTMLCanvasElement, private dimensions: any, private gapCoefficient: number) {
+    constructor(private canvas: HTMLCanvasElement, private dimensions: any) {
         this.canvasCtx = this.canvas.getContext('2d');
         this.cloudFrequency = this.config.CLOUD_FREQUENCY;
         // Cloud
@@ -95,7 +94,7 @@ export default class Horizon {
     }
 
     private addNewObstacle(currentSpeed: number) {
-        this.obstacles.push(Obstacle.randomCreate(this.canvasCtx, this.dimensions, this.gapCoefficient, currentSpeed));
+        this.obstacles.push(Obstacle.randomCreate(this.canvasCtx, this.dimensions, currentSpeed));
     }
     /**
      * Reset the horizon layer.

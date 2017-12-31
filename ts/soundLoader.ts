@@ -22,7 +22,6 @@ class SoundLoader {
   private sounds: IHashMap<HTMLAudioElement> = {};
 
   constructor() {
-
     soundEntries.forEach(s => {
       let sound = new Audio();
       sound.src = `asset/sound/${s.id}.mp3`;

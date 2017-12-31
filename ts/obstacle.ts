@@ -12,6 +12,9 @@ interface ObstacleType {
     minGap: number,
     collisionBoxes: CollisionBox[]
 }
+
+// This value should be grow smaller as game goes on to increase difficulty.
+const GAP_COEFFICIENT = 0.6;
 /**
 * Obstacle.
 * @param {HTMLCanvasCtx} canvasCtx
@@ -77,8 +80,7 @@ export default class Obstacle {
     public gap = 0;
     public followingObstacleCreated: boolean = false;
     private width: number;
-    constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>,
-        private gapCoefficient: number, speed: number) {
+    constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>, speed: number) {
         let typeName = typeConfig.type;
         ImageLoader.load(Obstacle.imageSources[typeName])// TODO: enable LDPI and HDPI.
 
@@ -86,9 +88,9 @@ export default class Obstacle {
         this.init(speed);
     }
 
-    public static randomCreate(canvasCtx: CanvasRenderingContext2D, dimensions: IHashMap<number>, gapCoefficient: number, speed: number) {
+    public static randomCreate(canvasCtx: CanvasRenderingContext2D, dimensions: IHashMap<number>, speed: number) {
         let type = Obstacle.types[getRandomNum(0, Obstacle.types.length - 1)]
-        return new Obstacle(canvasCtx, type, dimensions, gapCoefficient, speed);
+        return new Obstacle(canvasCtx, type, dimensions, speed);
     }
 
     /**
@@ -117,7 +119,7 @@ export default class Obstacle {
                 this.collisionBoxes[2].width;
             this.collisionBoxes[2].x = this.width - this.collisionBoxes[2].width;
         }
-        this.gap = this.getGap(this.gapCoefficient, speed);
+        this.gap = this.getGap(speed);
     }
     /**
      * Draw and crop based on size.
@@ -156,9 +158,9 @@ export default class Obstacle {
      * - Minimum gap gets wider as speed increses
      * @return {number} The gap size.
      */
-    private getGap(gapCoefficient: number, speed: number) {
+    private getGap(speed: number) {
         var minGap = Math.round(this.width * speed +
-            this.typeConfig.minGap * gapCoefficient);
+            this.typeConfig.minGap * GAP_COEFFICIENT);
         var maxGap = Math.round(minGap * Obstacle.MAX_GAP_COEFFICIENT);
         return getRandomNum(minGap, maxGap);
     }
