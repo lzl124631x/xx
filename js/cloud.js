@@ -25,10 +25,9 @@ var MIN_CLOUD_GAP = 100;
 */
 var Cloud = /** @class */ (function (_super) {
     __extends(Cloud, _super);
-    function Cloud(canvas, image, containerWidth) {
+    function Cloud(canvas, containerWidth) {
         var _this = _super.call(this, IMG_SRC, WIDTH, HEIGHT) || this;
         _this.canvas = canvas;
-        _this.image = image;
         _this.containerWidth = containerWidth;
         _this.remove = false;
         _this.cloudGap = globals_1.getRandomNum(MIN_CLOUD_GAP, MAX_CLOUD_GAP);

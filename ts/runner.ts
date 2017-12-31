@@ -5,7 +5,6 @@ import Horizon from "./horizon";
 import DistanceMeter from "./distanceMeter";
 import GameOverPanel from "./gameOverPanel";
 import { checkForCollision } from "./collision";
-import Resources from "./resources";
 import Sound, { SoundId } from "./sound";
 
 const DEFAULT_WIDTH = 600;
@@ -50,14 +49,35 @@ interface RunnerConfig {
   MAX_OBSTACLE_LENGTH: number,
   MAX_SPEED: number,
   MIN_JUMP_HEIGHT: number,
-  MOBILE_SPEED_COEFFICIENT: number,
-  RESOURCE_TEMPLATE_ID: string,
   SPEED: number
   [index: string]: string | number;
 }
 
 export default class Runner {
-  public static readonly config: RunnerConfig = {
+  /**
+   * Image source urls.
+   * @enum {array.<object>}
+   */
+  private static readonly imageSources = {
+    LDPI: [
+      { name: 'TREX', id: '1x-trex' }
+    ],
+    HDPI: [
+      { name: 'TREX', id: '2x-trex' }
+    ]
+  };
+  /**
+   * Runner event names.
+   * @enum {string}
+   */
+  private static readonly events: any = {
+    TOUCHEND: 'touchend',
+    TOUCHSTART: 'touchstart',
+  };
+
+  private horizon: Horizon = null;
+
+  private config: RunnerConfig = {
     ACCELERATION: 0.001, // Acceleration of T-Rex
     BG_CLOUD_SPEED: 0.2,
     BOTTOM_PAD: 50, // Bottom padding of canvas
@@ -71,71 +91,8 @@ export default class Runner {
     MAX_OBSTACLE_LENGTH: 3,
     MAX_SPEED: 12,
     MIN_JUMP_HEIGHT: 35,
-    MOBILE_SPEED_COEFFICIENT: 1.2,
-    RESOURCE_TEMPLATE_ID: 'audio-resources',
     SPEED: 6
   };
-  /**
-   * Image source urls.
-   * @enum {array.<object>}
-   */
-  private static readonly imageSources = {
-    LDPI: [
-      { name: 'CLOUD', id: '1x-cloud' },
-      { name: 'HORIZON', id: '1x-horizon' },
-      { name: 'RESTART', id: '1x-restart' },
-      { name: 'TEXT_SPRITE', id: '1x-text' },
-      { name: 'TREX', id: '1x-trex' }
-    ],
-    HDPI: [
-      { name: 'CLOUD', id: '2x-cloud' },
-      { name: 'HORIZON', id: '2x-horizon' },
-      { name: 'RESTART', id: '2x-restart' },
-      { name: 'TEXT_SPRITE', id: '2x-text' },
-      { name: 'TREX', id: '2x-trex' }
-    ]
-  };
-  /**
-   * Sound FX. Reference to the ID of the audio tag on interstitial page.
-   * @enum {string}
-   */
-  private static readonly sounds: any = {
-    BUTTON_PRESS: 'offline-sound-press',
-    HIT: 'offline-sound-hit',
-    SCORE: 'offline-sound-reached'
-  };
-  /**
-   * Key code mapping.
-   * @enum {object}
-   */
-  private static readonly keycodes: any = {
-    JUMP: { '38': 1, '32': 1 }, // Up, spacebar
-    DUCK: { '40': 1 }, // Down
-    RESTART: { '13': 1 } // Enter
-  };
-  /**
-   * Runner event names.
-   * @enum {string}
-   */
-  private static readonly events: any = {
-    ANIM_END: 'webkitAnimationEnd',
-    CLICK: 'click',
-    KEYDOWN: 'keydown',
-    KEYUP: 'keyup',
-    MOUSEDOWN: 'mousedown',
-    MOUSEUP: 'mouseup',
-    RESIZE: 'resize',
-    TOUCHEND: 'touchend',
-    TOUCHSTART: 'touchstart',
-    VISIBILITY: 'visibilitychange',
-    BLUR: 'blur',
-    FOCUS: 'focus',
-    LOAD: 'load'
-  };
-
-  private horizon: Horizon = null;
-
-  private config = Runner.config;
   private dimensions = { WIDTH: 0, HEIGHT: 0 };
   private canvas: HTMLCanvasElement = null;
   private canvasCtx: CanvasRenderingContext2D = null;
@@ -143,19 +100,26 @@ export default class Runner {
   private distanceMeter: DistanceMeter = null;
   private distanceRan: number = 0;
   private highestScore: number = 0;
+  // The absolute time of now.
   private time: number = 0;
+  // Time since this round of game was started.
   private runningTime: number = 0;
   private msPerFrame: number = 1000 / FPS;
-  private currentSpeed: number = Runner.config.SPEED;
+  private currentSpeed: number = this.config.SPEED;
   private obstacles: string[] = [];
+  // `started` is true after first activation
   private started: boolean = false;
+  // `activated` is false only after crashed and before restart
   private activated: boolean = false;
+  // `crashed` is true when game over.
   private crashed: boolean = false;
+  // `paused` is true when game over.
   private paused: boolean = false;
-  private resizeTimerId_: number = null;
+  // # of rounds played.
   private playCount: number = 0;
   private gameOverPanel: GameOverPanel = null;
   private playingIntro: boolean = false;
+  // `drawPending` is true after a new requestAnimationFrame is fired and not yet executed.
   private drawPending: boolean = false;
   private raqId: number = 0;
   // Sound
@@ -167,19 +131,7 @@ export default class Runner {
   public start(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvasCtx = canvas.getContext('2d');
-    this.loadImages();
     this.init();
-  }
-  /**
-   * Load and cache the image assets from the page.
-   */
-  private loadImages() {
-    var imageSources = IS_HIDPI ? Runner.imageSources.HDPI : Runner.imageSources.LDPI;
-    imageSources.forEach((img: any) => {
-       let image     = new Image()
-        image.src = Resources[img.id]
-      this.images[img.name] = image as HTMLImageElement
-    });
   }
 
   /**
@@ -187,14 +139,15 @@ export default class Runner {
    */
   private init() {
     this.dimensions.WIDTH = this.canvas.width;
-    this.dimensions.HEIGHT = this.canvas.height - Runner.config.BOTTOM_PAD;
+    this.dimensions.HEIGHT = this.canvas.height - this.config.BOTTOM_PAD;
     // Horizon contains clouds, obstacles and the ground.
     this.horizon = new Horizon(this.canvas, this.images, this.dimensions, this.config.GAP_COEFFICIENT);
     // Distance meter
-    this.distanceMeter = new DistanceMeter(this.canvas,
-      this.images.TEXT_SPRITE, this.dimensions.WIDTH);
+    this.distanceMeter = new DistanceMeter(
+      this.canvas,
+      this.dimensions.WIDTH);
     // Draw t-rex
-    this.tRex = new Trex(this.canvas, this.images.TREX, this.dimensions.HEIGHT);
+    this.tRex = new Trex(this.canvas, this.dimensions.HEIGHT);
 
     this.startListening();
     this.raq();
@@ -365,9 +318,7 @@ export default class Runner {
     this.tRex.update(100, Trex.status.CRASHED);
     // Game over panel.
     if (!this.gameOverPanel) {
-      this.gameOverPanel = new GameOverPanel(this.canvas,
-        this.images.TEXT_SPRITE, this.images.RESTART,
-        this.dimensions);
+      this.gameOverPanel = new GameOverPanel(this.canvas, this.dimensions);
     } else {
       this.gameOverPanel.draw();
     }

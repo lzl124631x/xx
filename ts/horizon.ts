@@ -9,39 +9,31 @@ import Cloud from "./cloud";
 */
 export default class Horizon {
     private canvasCtx: CanvasRenderingContext2D;
-    private config = Horizon.config;
-    public obstacles: Obstacle[] = [];
-    private horizonOffsets = [0, 0];
-    private cloudFrequency: number;
-    private runningTime: number;
-    // Cloud
-    private clouds: Cloud[] = [];
-    private cloudImg: HTMLImageElement;
-    private cloudSpeed = Horizon.config.BG_CLOUD_SPEED;
-    // Horizon
-    private horizonImg: HTMLImageElement;
-    private horizonLine: HorizonLine = null;
-    // Obstacles
-    private obstacleImgs: IHashMap<HTMLImageElement>;
-    /**
-     * Horizon config.
-     */
-    private static config: IHashMap<number> = {
+    private config: IHashMap<number> = {
         BG_CLOUD_SPEED: 0.2,
         BUMPY_THRESHOLD: .3,
         CLOUD_FREQUENCY: .5,
         HORIZON_HEIGHT: 16,
         MAX_CLOUDS: 6
     };
+    public obstacles: Obstacle[] = [];
+    private horizonOffsets = [0, 0];
+    private cloudFrequency: number;
+    private runningTime: number;
+    // Cloud
+    private clouds: Cloud[] = [];
+    private cloudSpeed = this.config.BG_CLOUD_SPEED;
+    // Horizon
+    private horizonLine: HorizonLine = null;
+    // Obstacles
+    private obstacleImgs: IHashMap<HTMLImageElement>;
     constructor(private canvas: HTMLCanvasElement, images: IHashMap<HTMLImageElement>, private dimensions: any, private gapCoefficient: number) {
         this.canvasCtx = this.canvas.getContext('2d');
         this.cloudFrequency = this.config.CLOUD_FREQUENCY;
         // Cloud
         this.clouds = [];
-        this.cloudImg = images.CLOUD;
         this.cloudSpeed = this.config.BG_CLOUD_SPEED;
         // Horizon
-        this.horizonImg = images.HORIZON;
         this.horizonLine = null;
         // Obstacles
         this.obstacleImgs = {
@@ -56,7 +48,7 @@ export default class Horizon {
       */
     private init() {
         this.addCloud();
-        this.horizonLine = new HorizonLine(this.canvas, this.horizonImg, this.dimensions);
+        this.horizonLine = new HorizonLine(this.canvas, this.dimensions);
     }
     /**
      * @param {number} deltaTime
@@ -124,7 +116,6 @@ export default class Horizon {
      * Add a new cloud to the horizon.
      */
     private addCloud() {
-        this.clouds.push(new Cloud(this.canvas, this.cloudImg,
-            this.dimensions.WIDTH));
+        this.clouds.push(new Cloud(this.canvas, this.dimensions.WIDTH));
     }
 }

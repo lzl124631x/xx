@@ -1,4 +1,3 @@
-import Resources from "./resources";
 import { IHashMap } from "./globals";
 let instance: Sound = null;
 

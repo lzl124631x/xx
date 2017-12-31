@@ -12,21 +12,26 @@ var Horizon = /** @class */ (function () {
         this.canvas = canvas;
         this.dimensions = dimensions;
         this.gapCoefficient = gapCoefficient;
-        this.config = Horizon.config;
+        this.config = {
+            BG_CLOUD_SPEED: 0.2,
+            BUMPY_THRESHOLD: .3,
+            CLOUD_FREQUENCY: .5,
+            HORIZON_HEIGHT: 16,
+            MAX_CLOUDS: 6
+        };
         this.obstacles = [];
         this.horizonOffsets = [0, 0];
         // Cloud
         this.clouds = [];
-        this.cloudSpeed = Horizon.config.BG_CLOUD_SPEED;
+        this.cloudSpeed = this.config.BG_CLOUD_SPEED;
+        // Horizon
         this.horizonLine = null;
         this.canvasCtx = this.canvas.getContext('2d');
         this.cloudFrequency = this.config.CLOUD_FREQUENCY;
         // Cloud
         this.clouds = [];
-        this.cloudImg = images.CLOUD;
         this.cloudSpeed = this.config.BG_CLOUD_SPEED;
         // Horizon
-        this.horizonImg = images.HORIZON;
         this.horizonLine = null;
         // Obstacles
         this.obstacleImgs = {
@@ -40,7 +45,7 @@ var Horizon = /** @class */ (function () {
       */
     Horizon.prototype.init = function () {
         this.addCloud();
-        this.horizonLine = new horizonLine_1["default"](this.canvas, this.horizonImg, this.dimensions);
+        this.horizonLine = new horizonLine_1["default"](this.canvas, this.dimensions);
     };
     /**
      * @param {number} deltaTime
@@ -106,17 +111,7 @@ var Horizon = /** @class */ (function () {
      * Add a new cloud to the horizon.
      */
     Horizon.prototype.addCloud = function () {
-        this.clouds.push(new cloud_1["default"](this.canvas, this.cloudImg, this.dimensions.WIDTH));
-    };
-    /**
-     * Horizon config.
-     */
-    Horizon.config = {
-        BG_CLOUD_SPEED: 0.2,
-        BUMPY_THRESHOLD: .3,
-        CLOUD_FREQUENCY: .5,
-        HORIZON_HEIGHT: 16,
-        MAX_CLOUDS: 6
+        this.clouds.push(new cloud_1["default"](this.canvas, this.dimensions.WIDTH));
     };
     return Horizon;
 }());

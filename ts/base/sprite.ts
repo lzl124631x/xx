@@ -1,8 +1,8 @@
 export default class Sprite {
-  private img: HTMLImageElement = new Image();
+  protected image: HTMLImageElement = new Image();
   private visible: boolean = true;
   constructor(imgSrc, protected width: number, protected height: number, protected x: number = 0, protected y: number = 0) {
-    this.img.src = imgSrc
+    this.image.src = imgSrc
   }
 
   drawToCanvas(ctx) {
@@ -10,7 +10,7 @@ export default class Sprite {
       return
 
     ctx.drawImage(
-      this.img,
+      this.image,
       this.x,
       this.y,
       this.width,

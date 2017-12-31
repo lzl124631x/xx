@@ -8,14 +8,14 @@ var Sprite = /** @class */ (function () {
         this.height = height;
         this.x = x;
         this.y = y;
-        this.img = new Image();
+        this.image = new Image();
         this.visible = true;
-        this.img.src = imgSrc;
+        this.image.src = imgSrc;
     }
     Sprite.prototype.drawToCanvas = function (ctx) {
         if (!this.visible)
             return;
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     };
     /**
      * 简单的碰撞检测定义：

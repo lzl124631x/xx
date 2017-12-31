@@ -16,7 +16,7 @@ export default class Cloud extends Sprite {
     private canvasCtx: CanvasRenderingContext2D
     public remove: boolean = false;
     public cloudGap = getRandomNum(MIN_CLOUD_GAP, MAX_CLOUD_GAP);
-    constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, private containerWidth: number) {
+    constructor(private canvas: HTMLCanvasElement, private containerWidth: number) {
         super(IMG_SRC, WIDTH, HEIGHT);
         this.canvasCtx = this.canvas.getContext('2d');
         this.x = containerWidth;

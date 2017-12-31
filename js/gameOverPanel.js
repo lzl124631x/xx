@@ -1,21 +1,14 @@
 "use strict";
 exports.__esModule = true;
 var globals_1 = require("./globals");
-/**
-* Game over panel.
-* @param {!HTMLCanvasElement} canvas
-* @param {!HTMLImage} textSprite
-* @param {!HTMLImage} restartImg
-* @param {!Object} dimensions Canvas dimensions.
-* @constructor
-*/
+var imageLoader_1 = require("./imageLoader");
+var imageResources = ["text", "restart"];
 var GameOverPanel = /** @class */ (function () {
-    function GameOverPanel(canvas, textSprite, restartImg, canvasDimensions) {
+    function GameOverPanel(canvas, canvasDimensions) {
         this.canvas = canvas;
-        this.textSprite = textSprite;
-        this.restartImg = restartImg;
         this.canvasDimensions = canvasDimensions;
         this.canvasCtx = canvas.getContext('2d');
+        imageResources.forEach(function (id) { return imageLoader_1["default"].load(id); });
         this.draw();
     }
     /**
@@ -57,9 +50,9 @@ var GameOverPanel = /** @class */ (function () {
             restartSourceHeight *= 2;
         }
         // Game over text from sprite.
-        this.canvasCtx.drawImage(this.textSprite, textSourceX, textSourceY, textSourceWidth, textSourceHeight, textTargetX, textTargetY, textTargetWidth, textTargetHeight);
+        this.canvasCtx.drawImage(imageLoader_1["default"].get("text"), textSourceX, textSourceY, textSourceWidth, textSourceHeight, textTargetX, textTargetY, textTargetWidth, textTargetHeight);
         // Restart button.
-        this.canvasCtx.drawImage(this.restartImg, 0, 0, restartSourceWidth, restartSourceHeight, restartTargetX, restartTargetY, dimensions.RESTART_WIDTH, dimensions.RESTART_HEIGHT);
+        this.canvasCtx.drawImage(imageLoader_1["default"].get("restart"), 0, 0, restartSourceWidth, restartSourceHeight, restartTargetX, restartTargetY, dimensions.RESTART_WIDTH, dimensions.RESTART_HEIGHT);
     };
     /**
      * Dimensions used in the panel.

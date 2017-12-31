@@ -1,11 +1,21 @@
 import { IHashMap, IS_HIDPI } from "./globals";
+import ImageLoader from "./imageLoader";
+
+const config: IHashMap<number> = {
+    // Number of digits.
+    MAX_DISTANCE_UNITS: 5,
+    // Distance that causes achievement animation.
+    ACHIEVEMENT_DISTANCE: 100,
+    // Used for conversion from pixel distance to a scaled unit.
+    COEFFICIENT: 0.025,
+    // Flash duration in milliseconds.
+    FLASH_DURATION: 1000 / 4,
+    // Flash iterations for achievement animation.
+    FLASH_ITERATIONS: 3
+};
 
 /**
 * Handles displaying the distance meter.
-* @param {!HTMLCanvasElement} canvas
-* @param {!HTMLImage} spriteSheet Image sprite.
-* @param {number} canvasWidth
-* @constructor
 */
 export default class DistanceMeter {
     private static readonly dimensions: IHashMap<number> = {
@@ -16,29 +26,14 @@ export default class DistanceMeter {
     /**
      * Y positioning of the digits in the sprite sheet.
      * X position is always 0.
-     * @type {array.<number>}
      */
     private static readonly yPos = [0, 13, 27, 40, 53, 67, 80, 93, 107, 120];
-    /**
-     * Distance meter config.
-     */
-    private static readonly config: IHashMap<number> = {
-        // Number of digits.
-        MAX_DISTANCE_UNITS: 5,
-        // Distance that causes achievement animation.
-        ACHIEVEMENT_DISTANCE: 100,
-        // Used for conversion from pixel distance to a scaled unit.
-        COEFFICIENT: 0.025,
-        // Flash duration in milliseconds.
-        FLASH_DURATION: 1000 / 4,
-        // Flash iterations for achievement animation.
-        FLASH_ITERATIONS: 3
-    };
 
     private canvasCtx: CanvasRenderingContext2D;
     private x: number = 0;
     private y: number = 5;
     private currentDistance: number = 0;
+    // Maximum displayable score
     public maxScore: number = 0;
     private highScore: string[] = [];
     private container: number = null;
@@ -47,9 +42,9 @@ export default class DistanceMeter {
     private defaultString: string = '';
     private flashTimer: number = 0;
     private flashIterations: number = 0;
-    private config = DistanceMeter.config;
-    constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, canvasWidth: number) {
+    constructor(private canvas: HTMLCanvasElement, canvasWidth: number) {
         this.canvasCtx = canvas.getContext('2d');
+        ImageLoader.load("text");
         this.init(canvasWidth);
     }
     /**
@@ -59,8 +54,7 @@ export default class DistanceMeter {
     private init(width: number) {
         var maxDistanceStr = '';
         this.calcXPos(width);
-        this.maxScore = this.config.MAX_DISTANCE_UNITS;
-        for (var i = 0; i < this.config.MAX_DISTANCE_UNITS; i++) {
+        for (var i = 0; i < config.MAX_DISTANCE_UNITS; i++) {
             this.draw(i, 0);
             this.defaultString += '0';
             maxDistanceStr += '9';
@@ -71,9 +65,9 @@ export default class DistanceMeter {
      * Calculate the xPos in the canvas.
      * @param {number} canvasWidth
      */
-    public calcXPos(canvasWidth: number) {
+    private calcXPos(canvasWidth: number) {
         this.x = canvasWidth - (DistanceMeter.dimensions.DEST_WIDTH *
-            (this.config.MAX_DISTANCE_UNITS + 1));
+            (config.MAX_DISTANCE_UNITS + 1));
     }
     /**
      * Draw a digit to canvas.
@@ -98,16 +92,22 @@ export default class DistanceMeter {
         this.canvasCtx.save();
         if (opt_highScore) {
             // Left of the current score.
-            var highScoreX = this.x - (this.config.MAX_DISTANCE_UNITS * 2) *
+            var highScoreX = this.x - (config.MAX_DISTANCE_UNITS * 2) *
                 DistanceMeter.dimensions.WIDTH;
             this.canvasCtx.translate(highScoreX, this.y);
         } else {
             this.canvasCtx.translate(this.x, this.y);
         }
-        this.canvasCtx.drawImage(this.image, sourceX, 0,
-            sourceWidth, sourceHeight,
-            targetX, targetY,
-            targetWidth, targetHeight
+        this.canvasCtx.drawImage(
+            ImageLoader.get("text"),
+            sourceX,
+            0,
+            sourceWidth,
+            sourceHeight,
+            targetX,
+            targetY,
+            targetWidth,
+            targetHeight
         );
         this.canvasCtx.restore();
     }
@@ -118,7 +118,7 @@ export default class DistanceMeter {
      */
     public getActualDistance(distance: number): number {
         return distance ?
-            Math.round(distance * this.config.COEFFICIENT) : 0;
+            Math.round(distance * config.COEFFICIENT) : 0;
     }
     /**
      * Update the distance meter.
@@ -133,7 +133,7 @@ export default class DistanceMeter {
             distance = this.getActualDistance(distance);
             if (distance > 0) {
                 // Acheivement unlocked
-                if (distance % this.config.ACHIEVEMENT_DISTANCE == 0) {
+                if (distance % config.ACHIEVEMENT_DISTANCE == 0) {
                     // Flash score and play sound.
                     this.acheivement = true;
                     this.flashTimer = 0;
@@ -141,19 +141,19 @@ export default class DistanceMeter {
                 }
                 // Create a string representation of the distance with leading 0.
                 var distanceStr = (this.defaultString +
-                    distance).substr(-this.config.MAX_DISTANCE_UNITS);
+                    distance).substr(-config.MAX_DISTANCE_UNITS);
                 this.digits = distanceStr.split('');
             } else {
                 this.digits = this.defaultString.split('');
             }
         } else {
             // Control flashing of the score on reaching acheivement.
-            if (this.flashIterations <= this.config.FLASH_ITERATIONS) {
+            if (this.flashIterations <= config.FLASH_ITERATIONS) {
                 this.flashTimer += deltaTime;
-                if (this.flashTimer < this.config.FLASH_DURATION) {
+                if (this.flashTimer < config.FLASH_DURATION) {
                     paint = false;
                 } else if (this.flashTimer >
-                    this.config.FLASH_DURATION * 2) {
+                    config.FLASH_DURATION * 2) {
                     this.flashTimer = 0;
                     this.flashIterations++;
                 }
@@ -191,7 +191,7 @@ export default class DistanceMeter {
     public setHighScore(distance: number) {
         distance = this.getActualDistance(distance);
         var highScoreStr = (this.defaultString +
-            distance).substr(-this.config.MAX_DISTANCE_UNITS);
+            distance).substr(-config.MAX_DISTANCE_UNITS);
         this.highScore = ['10', '11', ''].concat(highScoreStr.split(''));
     }
     /**

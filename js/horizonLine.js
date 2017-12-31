@@ -21,10 +21,9 @@ var HEIGHT = 12;
  */
 var HorizonLine = /** @class */ (function (_super) {
     __extends(HorizonLine, _super);
-    function HorizonLine(canvas, image, dimensions) {
+    function HorizonLine(canvas, dimensions) {
         var _this = _super.call(this, IMG_SRC, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20) || this;
         _this.canvas = canvas;
-        _this.image = image;
         _this.bumpThreshold = 0.5;
         _this.canvasCtx = canvas.getContext('2d');
         _this.draw();

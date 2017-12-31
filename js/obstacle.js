@@ -27,7 +27,7 @@ var Obstacle = /** @class */ (function () {
         this.gap = 0;
         this.followingObstacleCreated = false;
         var typeName = typeConfig.type;
-        imageLoader_1["default"].load(typeName, Obstacle.imageSources["LDPI"][typeName]); // TODO: enable LDPI and HDPI.
+        imageLoader_1["default"].load(Obstacle.imageSources[typeName]); // TODO: enable LDPI and HDPI.
         this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
     }
@@ -75,7 +75,7 @@ var Obstacle = /** @class */ (function () {
         }
         // Sprite
         var sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1));
-        this.canvasCtx.drawImage(imageLoader_1["default"].get(this.typeConfig.type), sourceX, 0, sourceWidth * this.size, sourceHeight, this.xPos, this.yPos, this.typeConfig.width * this.size, this.typeConfig.height);
+        this.canvasCtx.drawImage(imageLoader_1["default"].get(Obstacle.imageSources[this.typeConfig.type]), sourceX, 0, sourceWidth * this.size, sourceHeight, this.xPos, this.yPos, this.typeConfig.width * this.size, this.typeConfig.height);
     };
     /**
      * Obstacle frame update.
@@ -126,14 +126,8 @@ var Obstacle = /** @class */ (function () {
         return new collisionBox_1["default"](this.xPos + 1, this.yPos + 1, this.typeConfig.width * this.size - 2, this.typeConfig.height - 2);
     };
     Obstacle.imageSources = {
-        LDPI: {
-            'CACTUS_LARGE': '1x-obstacle-large',
-            'CACTUS_SMALL': '1x-obstacle-small'
-        },
-        HDPI: {
-            'CACTUS_LARGE': '2x-obstacle-large',
-            'CACTUS_SMALL': '2x-obstacle-small'
-        }
+        'CACTUS_LARGE': 'obstacle-large',
+        'CACTUS_SMALL': 'obstacle-small'
     };
     /**
     * Coefficient for calculating the maximum gap.

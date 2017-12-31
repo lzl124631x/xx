@@ -12,7 +12,7 @@ const HEIGHT = 12;
 export default class HorizonLine extends Sprite {
     private canvasCtx: CanvasRenderingContext2D;
     private bumpThreshold: number = 0.5;
-    constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, dimensions: any) {
+    constructor(private canvas: HTMLCanvasElement, dimensions: any) {
         super(IMG_SRC, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20);// TODO: this 20 is dependent to outer settings.
         this.canvasCtx = canvas.getContext('2d');
         this.draw();

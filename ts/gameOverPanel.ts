@@ -1,12 +1,8 @@
 import { IS_HIDPI, IHashMap} from "./globals";
-/**
-* Game over panel.
-* @param {!HTMLCanvasElement} canvas
-* @param {!HTMLImage} textSprite
-* @param {!HTMLImage} restartImg
-* @param {!Object} dimensions Canvas dimensions.
-* @constructor
-*/
+import ImageLoader from "./imageLoader";
+
+const imageResources = ["text", "restart"];
+
 export default class GameOverPanel {
     /**
      * Dimensions used in the panel.
@@ -21,8 +17,9 @@ export default class GameOverPanel {
         RESTART_HEIGHT: 32
     };
     private canvasCtx: CanvasRenderingContext2D;
-    constructor(private canvas: HTMLCanvasElement, private textSprite: HTMLImageElement, private restartImg: HTMLImageElement, private canvasDimensions: IHashMap<number>) {
+    constructor(private canvas: HTMLCanvasElement, private canvasDimensions: IHashMap<number>) {
         this.canvasCtx = canvas.getContext('2d');
+        imageResources.forEach(id => ImageLoader.load(id));
         this.draw();
     }
 
@@ -65,11 +62,11 @@ export default class GameOverPanel {
             restartSourceHeight *= 2;
         }
         // Game over text from sprite.
-        this.canvasCtx.drawImage(this.textSprite,
+        this.canvasCtx.drawImage(ImageLoader.get("text"),
             textSourceX, textSourceY, textSourceWidth, textSourceHeight,
             textTargetX, textTargetY, textTargetWidth, textTargetHeight);
         // Restart button.
-        this.canvasCtx.drawImage(this.restartImg, 0, 0,
+        this.canvasCtx.drawImage(ImageLoader.get("restart"), 0, 0,
             restartSourceWidth, restartSourceHeight,
             restartTargetX, restartTargetY, dimensions.RESTART_WIDTH,
             dimensions.RESTART_HEIGHT);

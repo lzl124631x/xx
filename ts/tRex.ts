@@ -1,6 +1,7 @@
 import CollisionBox from "./collisionBox";
 import Runner from "./runner";
 import { IHashMap, FPS, getTimeStamp, IS_HIDPI } from "./globals";
+import ImageLoader from "./imageLoader";
 
 export default class Trex {
   private canvasCtx: CanvasRenderingContext2D;
@@ -88,7 +89,8 @@ export default class Trex {
       msPerFrame: 1000 / 60
     }
   };
-  constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, height: number) {
+  constructor(private canvas: HTMLCanvasElement, height: number) {
+    ImageLoader.load("trex");
     this.init(height);
   };
   /**
@@ -162,10 +164,16 @@ export default class Trex {
       sourceWidth *= 2;
       sourceHeight *= 2;
     }
-    this.canvasCtx.drawImage(this.image, sourceX, sourceY,
-      sourceWidth, sourceHeight,
-      this.xPos, this.yPos,
-      this.config.WIDTH, this.config.HEIGHT);
+    this.canvasCtx.drawImage(
+      ImageLoader.get("trex"),
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      this.xPos,
+      this.yPos,
+      this.config.WIDTH,
+      this.config.HEIGHT);
   }
   /**
    * Sets a random time for the blink to happen.

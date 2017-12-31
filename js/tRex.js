@@ -2,10 +2,10 @@
 exports.__esModule = true;
 var collisionBox_1 = require("./collisionBox");
 var globals_1 = require("./globals");
+var imageLoader_1 = require("./imageLoader");
 var Trex = /** @class */ (function () {
-    function Trex(canvas, image, height) {
+    function Trex(canvas, height) {
         this.canvas = canvas;
-        this.image = image;
         this.xPos = 0;
         this.yPos = 0;
         // Position when on the ground.
@@ -27,6 +27,7 @@ var Trex = /** @class */ (function () {
         this.jumpspotX = 0;
         this.playingIntro = false;
         this.midair = false;
+        imageLoader_1["default"].load("trex");
         this.init(height);
     }
     ;
@@ -102,7 +103,7 @@ var Trex = /** @class */ (function () {
             sourceWidth *= 2;
             sourceHeight *= 2;
         }
-        this.canvasCtx.drawImage(this.image, sourceX, sourceY, sourceWidth, sourceHeight, this.xPos, this.yPos, this.config.WIDTH, this.config.HEIGHT);
+        this.canvasCtx.drawImage(imageLoader_1["default"].get("trex"), sourceX, sourceY, sourceWidth, sourceHeight, this.xPos, this.yPos, this.config.WIDTH, this.config.HEIGHT);
     };
     /**
      * Sets a random time for the blink to happen.

@@ -23,15 +23,9 @@ interface ObstacleType {
 */
 export default class Obstacle {
     private static readonly imageSources = {
-    LDPI: {
-      'CACTUS_LARGE': '1x-obstacle-large',
-      'CACTUS_SMALL': '1x-obstacle-small'
-    },
-    HDPI: {
-      'CACTUS_LARGE': '2x-obstacle-large',
-      'CACTUS_SMALL': '2x-obstacle-small'
-    }
-  };
+      'CACTUS_LARGE': 'obstacle-large',
+      'CACTUS_SMALL': 'obstacle-small'
+    };
     /**
     * Coefficient for calculating the maximum gap.
     */
@@ -86,7 +80,7 @@ export default class Obstacle {
     constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>,
         private gapCoefficient: number, speed: number) {
         let typeName = typeConfig.type;
-        ImageLoader.load(typeName, Obstacle.imageSources["LDPI"][typeName])// TODO: enable LDPI and HDPI.
+        ImageLoader.load(Obstacle.imageSources[typeName])// TODO: enable LDPI and HDPI.
 
         this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
@@ -139,7 +133,7 @@ export default class Obstacle {
         var sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1));
 
         this.canvasCtx.drawImage(
-            ImageLoader.get(this.typeConfig.type),
+            ImageLoader.get(Obstacle.imageSources[this.typeConfig.type]),
             sourceX, 0,
             sourceWidth * this.size, sourceHeight,
             this.xPos, this.yPos,

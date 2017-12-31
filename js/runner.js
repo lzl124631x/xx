@@ -7,7 +7,6 @@ var horizon_1 = require("./horizon");
 var distanceMeter_1 = require("./distanceMeter");
 var gameOverPanel_1 = require("./gameOverPanel");
 var collision_1 = require("./collision");
-var resources_1 = require("./resources");
 var sound_1 = require("./sound");
 var DEFAULT_WIDTH = 600;
 /**
@@ -38,7 +37,22 @@ function decodeBase64ToArrayBuffer(base64String) {
 var Runner = /** @class */ (function () {
     function Runner() {
         this.horizon = null;
-        this.config = Runner.config;
+        this.config = {
+            ACCELERATION: 0.001,
+            BG_CLOUD_SPEED: 0.2,
+            BOTTOM_PAD: 50,
+            CLEAR_TIME: 3000,
+            CLOUD_FREQUENCY: 0.5,
+            GAMEOVER_CLEAR_TIME: 750,
+            GAP_COEFFICIENT: 0.6,
+            GRAVITY: 0.6,
+            INITIAL_JUMP_VELOCITY: 12,
+            MAX_CLOUDS: 6,
+            MAX_OBSTACLE_LENGTH: 3,
+            MAX_SPEED: 12,
+            MIN_JUMP_HEIGHT: 35,
+            SPEED: 6
+        };
         this.dimensions = { WIDTH: 0, HEIGHT: 0 };
         this.canvas = null;
         this.canvasCtx = null;
@@ -46,19 +60,26 @@ var Runner = /** @class */ (function () {
         this.distanceMeter = null;
         this.distanceRan = 0;
         this.highestScore = 0;
+        // The absolute time of now.
         this.time = 0;
+        // Time since this round of game was started.
         this.runningTime = 0;
         this.msPerFrame = 1000 / globals_1.FPS;
-        this.currentSpeed = Runner.config.SPEED;
+        this.currentSpeed = this.config.SPEED;
         this.obstacles = [];
+        // `started` is true after first activation
         this.started = false;
+        // `activated` is false only after crashed and before restart
         this.activated = false;
+        // `crashed` is true when game over.
         this.crashed = false;
+        // `paused` is true when game over.
         this.paused = false;
-        this.resizeTimerId_ = null;
+        // # of rounds played.
         this.playCount = 0;
         this.gameOverPanel = null;
         this.playingIntro = false;
+        // `drawPending` is true after a new requestAnimationFrame is fired and not yet executed.
         this.drawPending = false;
         this.raqId = 0;
         // Sound
@@ -70,33 +91,20 @@ var Runner = /** @class */ (function () {
     Runner.prototype.start = function (canvas) {
         this.canvas = canvas;
         this.canvasCtx = canvas.getContext('2d');
-        this.loadImages();
         this.init();
-    };
-    /**
-     * Load and cache the image assets from the page.
-     */
-    Runner.prototype.loadImages = function () {
-        var _this = this;
-        var imageSources = globals_1.IS_HIDPI ? Runner.imageSources.HDPI : Runner.imageSources.LDPI;
-        imageSources.forEach(function (img) {
-            var image = new Image();
-            image.src = resources_1["default"][img.id];
-            _this.images[img.name] = image;
-        });
     };
     /**
      * Game initialiser.
      */
     Runner.prototype.init = function () {
         this.dimensions.WIDTH = this.canvas.width;
-        this.dimensions.HEIGHT = this.canvas.height - Runner.config.BOTTOM_PAD;
+        this.dimensions.HEIGHT = this.canvas.height - this.config.BOTTOM_PAD;
         // Horizon contains clouds, obstacles and the ground.
         this.horizon = new horizon_1["default"](this.canvas, this.images, this.dimensions, this.config.GAP_COEFFICIENT);
         // Distance meter
-        this.distanceMeter = new distanceMeter_1["default"](this.canvas, this.images.TEXT_SPRITE, this.dimensions.WIDTH);
+        this.distanceMeter = new distanceMeter_1["default"](this.canvas, this.dimensions.WIDTH);
         // Draw t-rex
-        this.tRex = new tRex_1["default"](this.canvas, this.images.TREX, this.dimensions.HEIGHT);
+        this.tRex = new tRex_1["default"](this.canvas, this.dimensions.HEIGHT);
         this.startListening();
         this.raq();
     };
@@ -262,7 +270,7 @@ var Runner = /** @class */ (function () {
         this.tRex.update(100, tRex_1["default"].status.CRASHED);
         // Game over panel.
         if (!this.gameOverPanel) {
-            this.gameOverPanel = new gameOverPanel_1["default"](this.canvas, this.images.TEXT_SPRITE, this.images.RESTART, this.dimensions);
+            this.gameOverPanel = new gameOverPanel_1["default"](this.canvas, this.dimensions);
         }
         else {
             this.gameOverPanel.draw();
@@ -305,80 +313,25 @@ var Runner = /** @class */ (function () {
             this.update();
         }
     };
-    Runner.config = {
-        ACCELERATION: 0.001,
-        BG_CLOUD_SPEED: 0.2,
-        BOTTOM_PAD: 50,
-        CLEAR_TIME: 3000,
-        CLOUD_FREQUENCY: 0.5,
-        GAMEOVER_CLEAR_TIME: 750,
-        GAP_COEFFICIENT: 0.6,
-        GRAVITY: 0.6,
-        INITIAL_JUMP_VELOCITY: 12,
-        MAX_CLOUDS: 6,
-        MAX_OBSTACLE_LENGTH: 3,
-        MAX_SPEED: 12,
-        MIN_JUMP_HEIGHT: 35,
-        MOBILE_SPEED_COEFFICIENT: 1.2,
-        RESOURCE_TEMPLATE_ID: 'audio-resources',
-        SPEED: 6
-    };
     /**
      * Image source urls.
      * @enum {array.<object>}
      */
     Runner.imageSources = {
         LDPI: [
-            { name: 'CLOUD', id: '1x-cloud' },
-            { name: 'HORIZON', id: '1x-horizon' },
-            { name: 'RESTART', id: '1x-restart' },
-            { name: 'TEXT_SPRITE', id: '1x-text' },
             { name: 'TREX', id: '1x-trex' }
         ],
         HDPI: [
-            { name: 'CLOUD', id: '2x-cloud' },
-            { name: 'HORIZON', id: '2x-horizon' },
-            { name: 'RESTART', id: '2x-restart' },
-            { name: 'TEXT_SPRITE', id: '2x-text' },
             { name: 'TREX', id: '2x-trex' }
         ]
-    };
-    /**
-     * Sound FX. Reference to the ID of the audio tag on interstitial page.
-     * @enum {string}
-     */
-    Runner.sounds = {
-        BUTTON_PRESS: 'offline-sound-press',
-        HIT: 'offline-sound-hit',
-        SCORE: 'offline-sound-reached'
-    };
-    /**
-     * Key code mapping.
-     * @enum {object}
-     */
-    Runner.keycodes = {
-        JUMP: { '38': 1, '32': 1 },
-        DUCK: { '40': 1 },
-        RESTART: { '13': 1 } // Enter
     };
     /**
      * Runner event names.
      * @enum {string}
      */
     Runner.events = {
-        ANIM_END: 'webkitAnimationEnd',
-        CLICK: 'click',
-        KEYDOWN: 'keydown',
-        KEYUP: 'keyup',
-        MOUSEDOWN: 'mousedown',
-        MOUSEUP: 'mouseup',
-        RESIZE: 'resize',
         TOUCHEND: 'touchend',
-        TOUCHSTART: 'touchstart',
-        VISIBILITY: 'visibilitychange',
-        BLUR: 'blur',
-        FOCUS: 'focus',
-        LOAD: 'load'
+        TOUCHSTART: 'touchstart'
     };
     return Runner;
 }());
