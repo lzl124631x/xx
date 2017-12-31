@@ -1,7 +1,7 @@
 import { IHashMap, IS_HIDPI, FPS } from "./globals";
 import Sprite from "./base/sprite";
 
-const IMG_SRC = "./asset/image/horizon-line.png";
+const IMG_ID = "horizon-line";
 const WIDTH = window.innerWidth;
 const HEIGHT = 12;
 
@@ -13,7 +13,7 @@ export default class HorizonLine extends Sprite {
     private canvasCtx: CanvasRenderingContext2D;
     private bumpThreshold: number = 0.5;
     constructor(private canvas: HTMLCanvasElement, dimensions: any) {
-        super(IMG_SRC, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20);// TODO: this 20 is dependent to outer settings.
+        super(IMG_ID, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20);// TODO: this 20 is dependent to outer settings.
         this.canvasCtx = canvas.getContext('2d');
         this.draw();
     }

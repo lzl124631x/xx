@@ -1,8 +1,10 @@
+import ImageLoader from "../imageLoader";
+
 export default class Sprite {
-  protected image: HTMLImageElement = new Image();
+  protected image: HTMLImageElement = null;
   private visible: boolean = true;
-  constructor(imgSrc, protected width: number, protected height: number, protected x: number = 0, protected y: number = 0) {
-    this.image.src = imgSrc
+  constructor(imgId, protected width: number, protected height: number, protected x: number = 0, protected y: number = 0) {
+    this.image = ImageLoader.load(imgId);
   }
 
   drawToCanvas(ctx) {
