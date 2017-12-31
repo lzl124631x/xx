@@ -1,7 +1,7 @@
 export default class Sprite {
   private img: HTMLImageElement = new Image();
   private visible: boolean = true;
-  constructor(imgSrc = '', protected width: number = 0, protected height: number = 0, protected x: number = 0, protected y: number = 0) {
+  constructor(imgSrc, protected width: number, protected height: number, protected x: number = 0, protected y: number = 0) {
     this.img.src = imgSrc
   }
 

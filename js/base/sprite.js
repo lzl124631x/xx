@@ -2,9 +2,6 @@
 exports.__esModule = true;
 var Sprite = /** @class */ (function () {
     function Sprite(imgSrc, width, height, x, y) {
-        if (imgSrc === void 0) { imgSrc = ''; }
-        if (width === void 0) { width = 0; }
-        if (height === void 0) { height = 0; }
         if (x === void 0) { x = 0; }
         if (y === void 0) { y = 0; }
         this.width = width;

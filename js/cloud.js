@@ -1,77 +1,58 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 exports.__esModule = true;
 var globals_1 = require("./globals");
+var sprite_1 = require("./base/sprite");
+var IMG_SRC = 'asset/image/cloud.png';
+var WIDTH = 46;
+var HEIGHT = 14;
+var MAX_SKY_LEVEL = 30;
+var MIN_SKY_LEVEL = 71;
+var MAX_CLOUD_GAP = 400;
+var MIN_CLOUD_GAP = 100;
 /**
 * Cloud background item.
 * Similar to an obstacle object but without collision boxes.
-* @param {HTMLCanvasElement} canvas Canvas element.
-* @param {Image} cloudImg
-* @param {number} containerWidth
 */
-var Cloud = /** @class */ (function () {
+var Cloud = /** @class */ (function (_super) {
+    __extends(Cloud, _super);
     function Cloud(canvas, image, containerWidth) {
-        this.canvas = canvas;
-        this.image = image;
-        this.containerWidth = containerWidth;
-        this.xPos = 0;
-        this.yPos = globals_1.getRandomNum(Cloud.config.MAX_SKY_LEVEL, Cloud.config.MIN_SKY_LEVEL);
-        this.remove = false;
-        this.cloudGap = globals_1.getRandomNum(Cloud.config.MIN_CLOUD_GAP, Cloud.config.MAX_CLOUD_GAP);
-        this.canvasCtx = this.canvas.getContext('2d');
-        this.xPos = containerWidth;
-        this.init();
+        var _this = _super.call(this, IMG_SRC, WIDTH, HEIGHT) || this;
+        _this.canvas = canvas;
+        _this.image = image;
+        _this.containerWidth = containerWidth;
+        _this.remove = false;
+        _this.cloudGap = globals_1.getRandomNum(MIN_CLOUD_GAP, MAX_CLOUD_GAP);
+        _this.canvasCtx = _this.canvas.getContext('2d');
+        _this.x = containerWidth;
+        _this.y = globals_1.getRandomNum(MAX_SKY_LEVEL, MIN_SKY_LEVEL);
+        return _this;
     }
-    /**
-     * Initialise the cloud. Sets the Cloud height.
-     */
-    Cloud.prototype.init = function () {
-        this.draw();
-    };
-    /**
-     * Draw the cloud.
-     */
-    Cloud.prototype.draw = function () {
-        this.canvasCtx.save();
-        var sourceWidth = Cloud.config.WIDTH;
-        var sourceHeight = Cloud.config.HEIGHT;
-        if (globals_1.IS_HIDPI) {
-            sourceWidth = sourceWidth * 2;
-            sourceHeight = sourceHeight * 2;
-        }
-        this.canvasCtx.drawImage(this.image, 0, 0, sourceWidth, sourceHeight, this.xPos, this.yPos, Cloud.config.WIDTH, Cloud.config.HEIGHT);
-        this.canvasCtx.restore();
-    };
-    /**
-     * Update the cloud position.
-     */
     Cloud.prototype.update = function (speed) {
         if (!this.remove) {
-            this.xPos -= Math.ceil(speed);
-            this.draw();
+            this.x -= Math.ceil(speed);
+            this.drawToCanvas(this.canvasCtx);
             // Mark as removeable if no longer in the canvas.
             if (!this.isVisible()) {
                 this.remove = true;
             }
         }
     };
-    /**
-     * Check if the cloud is visible on the stage.
-     * @return {boolean}
-     */
     Cloud.prototype.isVisible = function () {
-        return this.xPos + Cloud.config.WIDTH > 0;
+        return this.x + WIDTH > 0;
     };
-    /**
-    * Cloud object config.
-    */
-    Cloud.config = {
-        HEIGHT: 14,
-        MAX_CLOUD_GAP: 400,
-        MAX_SKY_LEVEL: 30,
-        MIN_CLOUD_GAP: 100,
-        MIN_SKY_LEVEL: 71,
-        WIDTH: 46
+    Cloud.prototype.needNextCloud = function (containerWidth) {
+        return containerWidth - this.x > this.cloudGap;
     };
     return Cloud;
-}());
+}(sprite_1["default"]));
 exports["default"] = Cloud;

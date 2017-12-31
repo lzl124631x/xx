@@ -57,11 +57,6 @@ var Horizon = /** @class */ (function () {
             this.updateObstacles(deltaTime, currentSpeed);
         }
     };
-    /**
-     * Update the cloud positions.
-     * @param {number} deltaTime
-     * @param {number} currentSpeed
-     */
     Horizon.prototype.updateClouds = function (deltaTime, speed) {
         var cloudSpeed = this.cloudSpeed / 1000 * deltaTime * speed;
         var numClouds = this.clouds.length;
@@ -72,7 +67,7 @@ var Horizon = /** @class */ (function () {
             var lastCloud = this.clouds[numClouds - 1];
             // Check for adding a new cloud.
             if (numClouds < this.config.MAX_CLOUDS &&
-                (this.dimensions.WIDTH - lastCloud.xPos) > lastCloud.cloudGap &&
+                lastCloud.needNextCloud(this.dimensions.WIDTH) &&
                 this.cloudFrequency > Math.random()) {
                 this.addCloud();
             }

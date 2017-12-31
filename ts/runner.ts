@@ -6,6 +6,7 @@ import DistanceMeter from "./distanceMeter";
 import GameOverPanel from "./gameOverPanel";
 import { checkForCollision } from "./collision";
 import Resources from "./resources";
+import Sound, { SoundId } from "./sound";
 
 const DEFAULT_WIDTH = 600;
 /**
@@ -157,11 +158,8 @@ export default class Runner {
   private playingIntro: boolean = false;
   private drawPending: boolean = false;
   private raqId: number = 0;
-  // Sound FX.
-  private audioBuffer: AudioBuffer = null;
-  private soundFx: IHashMap<AudioBuffer> = {};
-  // Global web audio context for playing sounds.
-  private audioContext: AudioContext = null;
+  // Sound
+  private sound = new Sound();
   // Images.
   private images: IHashMap<HTMLImageElement> = {};
   private imagesLoaded: number = 0;
@@ -296,9 +294,9 @@ export default class Runner {
       }
       var playAcheivementSound = this.distanceMeter.update(deltaTime,
         Math.ceil(this.distanceRan));
-      // if (playAcheivementSound) {
-      //   this.playSound(this.soundFx.SCORE);
-      // }
+      if (playAcheivementSound) {
+        this.sound.play(SoundId.SCORE_REACHED);
+      }
     }
     if (!this.crashed) {
       this.tRex.update(deltaTime);
@@ -324,6 +322,7 @@ export default class Runner {
         this.activated = true;
       }
       if (!this.tRex.jumping) {
+        this.sound.play(SoundId.JUMP);
         this.tRex.startJump();
       }
     }
@@ -358,6 +357,7 @@ export default class Runner {
   }
 
   private gameOver() {
+    this.sound.play(SoundId.CRASH);
     vibrate(200);
     this.stop();
     this.crashed = true;

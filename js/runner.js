@@ -8,6 +8,7 @@ var distanceMeter_1 = require("./distanceMeter");
 var gameOverPanel_1 = require("./gameOverPanel");
 var collision_1 = require("./collision");
 var resources_1 = require("./resources");
+var sound_1 = require("./sound");
 var DEFAULT_WIDTH = 600;
 /**
  * Vibrate on mobile devices.
@@ -60,11 +61,8 @@ var Runner = /** @class */ (function () {
         this.playingIntro = false;
         this.drawPending = false;
         this.raqId = 0;
-        // Sound FX.
-        this.audioBuffer = null;
-        this.soundFx = {};
-        // Global web audio context for playing sounds.
-        this.audioContext = null;
+        // Sound
+        this.sound = new sound_1["default"]();
         // Images.
         this.images = {};
         this.imagesLoaded = 0;
@@ -197,9 +195,9 @@ var Runner = /** @class */ (function () {
                 this.distanceRan = 0;
             }
             var playAcheivementSound = this.distanceMeter.update(deltaTime, Math.ceil(this.distanceRan));
-            // if (playAcheivementSound) {
-            //   this.playSound(this.soundFx.SCORE);
-            // }
+            if (playAcheivementSound) {
+                this.sound.play(sound_1.SoundId.SCORE_REACHED);
+            }
         }
         if (!this.crashed) {
             this.tRex.update(deltaTime);
@@ -223,6 +221,7 @@ var Runner = /** @class */ (function () {
                 this.activated = true;
             }
             if (!this.tRex.jumping) {
+                this.sound.play(sound_1.SoundId.JUMP);
                 this.tRex.startJump();
             }
         }
@@ -255,6 +254,7 @@ var Runner = /** @class */ (function () {
         return !!this.raqId;
     };
     Runner.prototype.gameOver = function () {
+        this.sound.play(sound_1.SoundId.CRASH);
         vibrate(200);
         this.stop();
         this.crashed = true;

@@ -3,6 +3,7 @@ import Runner from './runner.js'
 // import Resources from "./resources";
 // let image = new Image()
 // image.src = Resources["1x-trex"];
+
 export default class Main {
   constructor() {
     if (canvas.width < canvas.height) {
