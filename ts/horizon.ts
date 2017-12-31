@@ -25,9 +25,7 @@ export default class Horizon {
     private cloudSpeed = this.config.BG_CLOUD_SPEED;
     // Horizon
     private horizonLine: HorizonLine = null;
-    // Obstacles
-    private obstacleImgs: IHashMap<HTMLImageElement>;
-    constructor(private canvas: HTMLCanvasElement, images: IHashMap<HTMLImageElement>, private dimensions: any, private gapCoefficient: number) {
+    constructor(private canvas: HTMLCanvasElement, private dimensions: any, private gapCoefficient: number) {
         this.canvasCtx = this.canvas.getContext('2d');
         this.cloudFrequency = this.config.CLOUD_FREQUENCY;
         // Cloud
@@ -35,11 +33,6 @@ export default class Horizon {
         this.cloudSpeed = this.config.BG_CLOUD_SPEED;
         // Horizon
         this.horizonLine = null;
-        // Obstacles
-        this.obstacleImgs = {
-            CACTUS_SMALL: images.CACTUS_SMALL,
-            CACTUS_LARGE: images.CACTUS_LARGE
-        };
         this.init();
     }
 

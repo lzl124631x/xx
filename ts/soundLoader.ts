@@ -1,6 +1,4 @@
 import { IHashMap } from "./globals";
-let instance: Sound = null;
-
 interface SoundEntry {
   id: string,
   loop?: boolean
@@ -20,19 +18,14 @@ let soundEntries: SoundEntry[] = [
   { id: SoundId.SCORE_REACHED }
 ]
 
-export default class Sound {
+class SoundLoader {
   private sounds: IHashMap<HTMLAudioElement> = {};
 
   constructor() {
-    if (instance) {
-      return instance
-    }
-
-    instance = this
 
     soundEntries.forEach(s => {
       let sound = new Audio();
-      sound.src = `asset/${s.id}.mp3`;
+      sound.src = `asset/sound/${s.id}.mp3`;
 
       sound.loop = !!s.loop;
       this.sounds[s.id] = sound;
@@ -46,3 +39,5 @@ export default class Sound {
     sound.play();
   }
 }
+
+export default new SoundLoader();

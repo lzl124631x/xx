@@ -5,7 +5,7 @@ import Horizon from "./horizon";
 import DistanceMeter from "./distanceMeter";
 import GameOverPanel from "./gameOverPanel";
 import { checkForCollision } from "./collision";
-import Sound, { SoundId } from "./sound";
+import SoundLoader, { SoundId } from "./soundLoader";
 
 const DEFAULT_WIDTH = 600;
 /**
@@ -53,19 +53,7 @@ interface RunnerConfig {
   [index: string]: string | number;
 }
 
-export default class Runner {
-  /**
-   * Image source urls.
-   * @enum {array.<object>}
-   */
-  private static readonly imageSources = {
-    LDPI: [
-      { name: 'TREX', id: '1x-trex' }
-    ],
-    HDPI: [
-      { name: 'TREX', id: '2x-trex' }
-    ]
-  };
+class Runner {
   /**
    * Runner event names.
    * @enum {string}
@@ -122,11 +110,6 @@ export default class Runner {
   // `drawPending` is true after a new requestAnimationFrame is fired and not yet executed.
   private drawPending: boolean = false;
   private raqId: number = 0;
-  // Sound
-  private sound = new Sound();
-  // Images.
-  private images: IHashMap<HTMLImageElement> = {};
-  private imagesLoaded: number = 0;
 
   public start(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -141,7 +124,7 @@ export default class Runner {
     this.dimensions.WIDTH = this.canvas.width;
     this.dimensions.HEIGHT = this.canvas.height - this.config.BOTTOM_PAD;
     // Horizon contains clouds, obstacles and the ground.
-    this.horizon = new Horizon(this.canvas, this.images, this.dimensions, this.config.GAP_COEFFICIENT);
+    this.horizon = new Horizon(this.canvas, this.dimensions, this.config.GAP_COEFFICIENT);
     // Distance meter
     this.distanceMeter = new DistanceMeter(
       this.canvas,
@@ -248,7 +231,7 @@ export default class Runner {
       var playAcheivementSound = this.distanceMeter.update(deltaTime,
         Math.ceil(this.distanceRan));
       if (playAcheivementSound) {
-        this.sound.play(SoundId.SCORE_REACHED);
+        SoundLoader.play(SoundId.SCORE_REACHED);
       }
     }
     if (!this.crashed) {
@@ -275,7 +258,7 @@ export default class Runner {
         this.activated = true;
       }
       if (!this.tRex.jumping) {
-        this.sound.play(SoundId.JUMP);
+        SoundLoader.play(SoundId.JUMP);
         this.tRex.startJump();
       }
     }
@@ -310,7 +293,7 @@ export default class Runner {
   }
 
   private gameOver() {
-    this.sound.play(SoundId.CRASH);
+    SoundLoader.play(SoundId.CRASH);
     vibrate(200);
     this.stop();
     this.crashed = true;
@@ -364,3 +347,5 @@ export default class Runner {
     }
   }
 }
+
+export default new Runner();
