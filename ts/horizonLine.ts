@@ -1,84 +1,62 @@
 import { IHashMap, IS_HIDPI, FPS } from "./globals";
+import Sprite from "./base/sprite";
+
+const IMG_SRC = "./asset/image/horizon-line.png";
+const WIDTH = window.innerWidth;
+const HEIGHT = 12;
 
 /**
  * Horizon Line.
  * Consists of two connecting lines. Randomly assigns a flat / bumpy horizon.
  */
-export default class HorizonLine {
-    private static defaultDimensions: IHashMap<number> = {
-        WIDTH: 0,
-        HEIGHT: 12,
-        YPOS: 127
-    };
-
+export default class HorizonLine extends Sprite {
     private canvasCtx: CanvasRenderingContext2D;
-    private sourceDimensions: IHashMap<number> = {};
-    private dimensions = HorizonLine.defaultDimensions;
-    private sourceXPos: number[] = [0, 600];// TODO: this 600 is dependent to image size.
-    private xPos: number[] = [];
-    private yPos: number = 0;
     private bumpThreshold: number = 0.5;
     constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, dimensions: any) {
+        super(IMG_SRC, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20);// TODO: this 20 is dependent to outer settings.
         this.canvasCtx = canvas.getContext('2d');
-        this.dimensions.WIDTH = dimensions.WIDTH;
-        this.dimensions.YPOS = dimensions.HEIGHT - 20;// TODO: this 20 is dependent to outer settings.
-        this.setSourceDimensions();
         this.draw();
-    }
-
-    /**
-      * Set the source dimensions of the horizon line.
-      */
-    private setSourceDimensions() {
-        for (var dimension in HorizonLine.defaultDimensions) {
-            if (IS_HIDPI) {
-                if (dimension != 'YPOS') {
-                    this.sourceDimensions[dimension] =
-                        HorizonLine.defaultDimensions[dimension] * 2;
-                }
-            } else {
-                this.sourceDimensions[dimension] =
-                    HorizonLine.defaultDimensions[dimension];
-            }
-            this.dimensions[dimension] = HorizonLine.defaultDimensions[dimension];
-        }
-        this.xPos = [0, this.dimensions.WIDTH];
-        this.yPos = this.dimensions.YPOS;
     }
 
     /**
      * Return the crop x position of a type.
      */
     private getRandomType() {
-        return Math.random() > this.bumpThreshold ? this.dimensions.WIDTH : 0;
+        return Math.random() > this.bumpThreshold ? this.width : 0;
     }
     /**
      * Draw the horizon line.
      */
     private draw() {
-        this.canvasCtx.drawImage(this.image, this.sourceXPos[0], 0,
-            this.sourceDimensions.WIDTH, this.sourceDimensions.HEIGHT,
-            this.xPos[0], this.yPos,
-            this.dimensions.WIDTH, this.dimensions.HEIGHT);
-        this.canvasCtx.drawImage(this.image, this.sourceXPos[1], 0,
-            this.sourceDimensions.WIDTH, this.sourceDimensions.HEIGHT,
-            this.xPos[1], this.yPos,
-            this.dimensions.WIDTH, this.dimensions.HEIGHT);
+        this.canvasCtx.drawImage(
+            this.image,
+            0,
+            0,
+            this.width,
+            this.height,
+            this.x,
+            this.y,
+            this.width,
+            this.height);
+        // If thix.x > 0, this segment is leftmost, with x = this.x - this.width.
+        // Otherwise, this segment is rightmost, with x = this.x + this.width.
+        this.canvasCtx.drawImage(
+            this.image,
+            WIDTH,
+            0,
+            this.width,
+            this.height,
+            this.x > 0 ? this.x - this.width : this.x + this.width,
+            this.y,
+            this.width,
+            this.height);
     }
-    /**
-     * Update the x position of an indivdual piece of the line.
-     * @param {number} pos Line position.
-     * @param {number} increment
-     */
-    private updateXPos(pos: number, increment: number) {
-        var line1 = pos;
-        var line2 = pos == 0 ? 1 : 0;
-        this.xPos[line1] -= increment;
-        this.xPos[line2] = this.xPos[line1] + this.dimensions.WIDTH;
-        if (this.xPos[line1] <= -this.dimensions.WIDTH) {
-            this.xPos[line1] += this.dimensions.WIDTH * 2;
-            this.xPos[line2] = this.xPos[line1] - this.dimensions.WIDTH;
-            this.sourceXPos[line1] = this.getRandomType();
+
+    // TODO: make this impl. the same as the original.
+    private updateXPos(increment: number) {
+        this.x -= increment;
+        if (this.x <= -this.width) {
+            this.x = this.width;
         }
     }
     /**
@@ -88,18 +66,13 @@ export default class HorizonLine {
      */
     public update(deltaTime: number, speed: number) {
         var increment = Math.floor(speed * (FPS / 1000) * deltaTime);
-        if (this.xPos[0] <= 0) {
-            this.updateXPos(0, increment);
-        } else {
-            this.updateXPos(1, increment);
-        }
+        this.updateXPos(increment);
         this.draw();
     }
     /**
      * Reset horizon to the starting position.
      */
     public reset() {
-        this.xPos[0] = 0;
-        this.xPos[1] = this.dimensions.WIDTH;
+        this.x = 0;
     }
 }

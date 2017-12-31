@@ -42,7 +42,6 @@ export default class Sound {
   }
 
   public play(id: string) {
-    console.log(id)
     let sound = this.sounds[id];
     sound.currentTime = 0;
     sound.play();

@@ -31,7 +31,6 @@ var Sound = /** @class */ (function () {
         this.play(SoundId.BGM);
     }
     Sound.prototype.play = function (id) {
-        console.log(id);
         var sound = this.sounds[id];
         sound.currentTime = 0;
         sound.play();
