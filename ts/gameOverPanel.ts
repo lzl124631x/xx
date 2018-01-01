@@ -24,24 +24,12 @@ export default class GameOverPanel {
 
     constructor(private canvas: HTMLCanvasElement, private canvasDimensions: IHashMap<number>) {
         this.canvasCtx = canvas.getContext('2d');
-        this.draw();
     }
 
     /**
-     * Update the panel dimensions.
-     * @param {number} width New canvas width.
-     * @param {number} height Optional new canvas height.
-     */
-    public updateDimensions(width: number, height?: number) {
-        this.canvasDimensions.WIDTH = width;
-        if (height) {
-            this.canvasDimensions.HEIGHT = height;
-        }
-    }
-    /**
      * Draw the panel.
      */
-    public draw() {
+    public render() {
         var dimensions = GameOverPanel.dimensions;
         var centerX = this.canvasDimensions.WIDTH / 2;
         // Game over text.

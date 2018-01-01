@@ -73,7 +73,6 @@ class Runner {
   private tRex: Trex = null;
   private distanceMeter: DistanceMeter = null;
   private distanceInPixel: number = 0;
-  private highestScore: number = 0;
   // The absolute time of now.
   private time: number = 0;
   // Time since this round of game was started.
@@ -221,6 +220,9 @@ class Runner {
     this.tRex.render();
     this.horizon.render();
     this.distanceMeter.render();
+    if (this.isGameOver) {
+      this.gameOverPanel.render();
+    }
   }
 
   private startListening() {
@@ -282,13 +284,7 @@ class Runner {
     this.isGameOver = true;
     this.distanceMeter.achievement = false;
     this.tRex.update(100, Trex.status.CRASHED);
-    // Game over panel.
-    this.gameOverPanel.draw();
-    // Update the high score.
-    if (this.getDistance() > this.highestScore) {
-      this.highestScore = this.getDistance();
-      this.distanceMeter.setHighScore(this.highestScore);
-    }
+    this.distanceMeter.updateHighScore(this.getDistance());
     // Reset the time clock.
     this.time = getTimeStamp();
   }
@@ -319,8 +315,7 @@ class Runner {
       this.isGameOver = false;
       this.distanceInPixel = 0;
       this.time = getTimeStamp();
-      this.clearCanvas();
-      this.distanceMeter.reset(); // TODO: original code is (this.highestScore)
+      this.distanceMeter.reset();
       this.horizon.reset();
       this.tRex.reset();
       this.startLoop();

@@ -34,7 +34,8 @@ export default class DistanceMeter {
     private currentDistance: number = 0;
     // Maximum displayable score
     public maxScore: number = 0;
-    private highScore: string[] = [];
+    private highScore: number = 0;
+    private highScoreChars: string[] = [];
     private container: number = null;
     private digits: string[] = [];
     public achievement: boolean = false;
@@ -166,8 +167,8 @@ export default class DistanceMeter {
     private drawHighScore() {
         this.canvasCtx.save();
         this.canvasCtx.globalAlpha = .8;
-        for (var i = this.highScore.length - 1; i >= 0; i--) {
-            this.draw(i, parseInt(this.highScore[i], 10), true);
+        for (var i = this.highScoreChars.length - 1; i >= 0; i--) {
+            this.draw(i, parseInt(this.highScoreChars[i], 10), true);
         }
         this.canvasCtx.restore();
     }
@@ -176,10 +177,11 @@ export default class DistanceMeter {
      * Position of char in the sprite: H - 10, I - 11.
      * @param {number} distance Distance ran in pixels.
      */
-    public setHighScore(distance: number) {
-        var highScoreStr = (this.defaultString +
-            distance).substr(-config.MAX_DISTANCE_UNITS);
-        this.highScore = ['10', '11', ''].concat(highScoreStr.split(''));
+    public updateHighScore(distance: number) {
+        if (distance <= this.highScore) return;
+        this.highScore = distance;
+        var highScoreStr = (this.defaultString + distance).substr(-config.MAX_DISTANCE_UNITS);
+        this.highScoreChars = ['10', '11', ''].concat(highScoreStr.split(''));
     }
     /**
      * Reset the distance meter back to '00000'.
