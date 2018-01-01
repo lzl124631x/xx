@@ -109,7 +109,6 @@ export default class Trex {
     this.groundYPos = height - this.config.HEIGHT - 10;// 10 is an adjustment.
     this.yPos = this.groundYPos;
     this.minJumpHeight = this.groundYPos - this.config.MIN_JUMP_HEIGHT;
-    this.draw(0, 0);
     this.update(0, Trex.status.WAITING);
   }
   /**
@@ -146,19 +145,12 @@ export default class Trex {
       this.timer = 0;
     }
   }
+  
   public render() {
-    this.draw(this.currentAnimFrames[this.currentFrame], 0);
-  }
-  /**
-   * Draw the t-rex to a particular position.
-   * @param {number} x
-   * @param {number} y
-   */
-  private draw(x: number, y: number) {
     this.canvasCtx.drawImage(
       ImageLoader.get("trex"),
-      x,
-      y,
+      this.currentAnimFrames[this.currentFrame],
+      0,
       this.config.WIDTH,
       this.config.HEIGHT,
       this.xPos,
