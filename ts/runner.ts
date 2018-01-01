@@ -121,6 +121,7 @@ class Runner {
     this.horizon = new Horizon(this.canvas, this.dimensions);
     this.distanceMeter = new DistanceMeter(this.canvas, this.dimensions.WIDTH);
     this.tRex = new Trex(this.canvas, this.dimensions.HEIGHT);
+    this.gameOverPanel = new GameOverPanel(this.canvas, this.dimensions);
 
     this.startListening();
     this.startLoop();
@@ -296,11 +297,7 @@ class Runner {
     this.distanceMeter.acheivement = false;
     this.tRex.update(100, Trex.status.CRASHED);
     // Game over panel.
-    if (!this.gameOverPanel) {
-      this.gameOverPanel = new GameOverPanel(this.canvas, this.dimensions);
-    } else {
-      this.gameOverPanel.draw();
-    }
+    this.gameOverPanel.draw();
     // Update the high score.
     if (this.distanceRan > this.highestScore) {
       this.highestScore = Math.ceil(this.distanceRan);

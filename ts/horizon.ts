@@ -16,7 +16,6 @@ export default class Horizon {
         MAX_CLOUDS: 6
     };
     public obstacles: Obstacle[] = [];
-    private horizonOffsets = [0, 0];
     private cloudFrequency: number;
     private runningTime: number;
     // Cloud
