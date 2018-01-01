@@ -41,8 +41,14 @@ interface RunnerConfig {
 const DIST_COEFFICIENT = 0.025;
 
 wx.onShow(() => {
-  SoundLoader.play(SoundId.BGM)
+  SoundLoader.play(SoundId.BGM);
 });
+
+enum StatusEnum {
+  WAITING,
+  RUNNING,
+  GAMEOVER
+}
 
 class Runner {
   /**
@@ -84,13 +90,8 @@ class Runner {
   private msPerFrame: number = 1000 / FPS;
   private currentSpeed: number = this.config.SPEED;
   private obstacles: string[] = [];
-  // `started` is true after first activation
-  private started: boolean = false;
-  // `isGameOver` is true when game over.
-  private isGameOver: boolean = false;
+  private status: StatusEnum = StatusEnum.WAITING;
   private gameOverPanel: GameOverPanel = null;
-  private playingIntro: boolean = false;
-  private raqId: number = 0;
 
   public start(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -135,27 +136,12 @@ class Runner {
       }
     }
   }
-  /**
-   * Play the game intro.
-   * Canvas container width expands out to the full width.
-   */
-  private playIntro() {
-    if (!this.started && !this.isGameOver) {
-      this.playingIntro = true;
-      this.tRex.playingIntro = true;
-      this.started = true;
-      setTimeout(this.startGame.bind(this), 1000);
-    } else if (this.isGameOver) {
-      this.restart();
-    }
-  }
+
   /**
    * Update the game status to started.
    */
   private startGame() {
     this.runningTime = 0;
-    this.playingIntro = false;
-    this.tRex.playingIntro = false;
   }
 
   private clearCanvas() {
@@ -168,23 +154,15 @@ class Runner {
     var now = getTimeStamp();
     var deltaTime = now - (this.time || now);
     this.time = now;
-    if (!this.isGameOver) {
+    if (this.status == StatusEnum.RUNNING) {
       if (this.tRex.jumping) {
         this.tRex.updateJump(deltaTime);
       }
       this.runningTime += deltaTime;
       var hasObstacles = this.runningTime > this.config.CLEAR_TIME;
-      // First jump triggers the intro.
-      if (this.tRex.jumpCount == 1 && !this.playingIntro) {
-        this.playIntro();
-      }
-      // The horizon doesn't move until the intro is over.
-      if (this.playingIntro) {
-        this.horizon.update(0, this.currentSpeed, hasObstacles);
-      } else {
-        deltaTime = !this.started ? 0 : deltaTime;
-        this.horizon.update(deltaTime, this.currentSpeed, hasObstacles);
-      }
+
+      this.horizon.update(deltaTime, this.currentSpeed, hasObstacles);
+
       // Check for collisions.
       var collision = hasObstacles &&
         checkForCollision(this.horizon.obstacles[0], this.tRex);
@@ -202,7 +180,7 @@ class Runner {
       }
       this.distanceMeter.update(deltaTime, this.getDistance());
     }
-    if (!this.isGameOver) {
+    if (this.status != StatusEnum.GAMEOVER) {
       this.tRex.update(deltaTime);
     }
   }
@@ -216,7 +194,7 @@ class Runner {
     this.tRex.render();
     this.horizon.render();
     this.distanceMeter.render();
-    if (this.isGameOver) {
+    if (this.status == StatusEnum.GAMEOVER) {
       this.gameOverPanel.render();
     }
   }
@@ -232,24 +210,18 @@ class Runner {
   }
 
   private onTouchStart(e: KeyboardEvent) {
-    if (this.isGameOver) {
-      this.restart();
-    } else {
+    if (this.status == StatusEnum.RUNNING) {
       if (!this.tRex.jumping) {
         SoundLoader.play(SoundId.JUMP);
         this.tRex.startJump();
       }
+    } else {
+      this.restart();
     }
   }
 
   private onTouchEnd(e: KeyboardEvent) {
-    if (this.isGameOver) {
-      // Check that enough time has elapsed before allowing jump key to restart.
-      var deltaTime = getTimeStamp() - this.time;
-      if (deltaTime >= this.config.GAMEOVER_CLEAR_TIME) {
-        this.restart();
-      }
-    } else {
+    if (this.status == StatusEnum.RUNNING) {
       this.tRex.endJump();
     }
   }
@@ -258,7 +230,7 @@ class Runner {
     this.update();
     this.render();
 
-    if (this.isGameOver) {
+    if (this.status == StatusEnum.GAMEOVER) {
       return;
     }
     this.startLoop();
@@ -267,18 +239,15 @@ class Runner {
   private gameOver() {
     SoundLoader.play(SoundId.CRASH);
     vibrate(200);
-    this.isGameOver = true;
-    this.distanceMeter.achievement = false;
+    this.status = StatusEnum.GAMEOVER;
     this.tRex.update(100, Trex.status.CRASHED);
     this.distanceMeter.updateHighScore(this.getDistance());
-    // Reset the time clock.
-    this.time = getTimeStamp();
   }
 
   private restart() {
     this.runningTime = 0;
     this.currentSpeed = this.config.SPEED;
-    this.isGameOver = false;
+    this.status = StatusEnum.RUNNING;
     this.distanceInPixel = 0;
     this.time = getTimeStamp();
     this.distanceMeter.reset();

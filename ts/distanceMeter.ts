@@ -38,7 +38,7 @@ export default class DistanceMeter {
     private highScoreChars: string[] = [];
     private container: number = null;
     private digits: string[] = [];
-    public achievement: boolean = false;
+    private achievement: boolean = false;
     private defaultString: string = '';
     private flashTimer: number = 0;
     private flashIterations: number = 0;

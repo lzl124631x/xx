@@ -8,7 +8,7 @@ const BLINK_LENGTH = 200
 
 export default class Trex {
   private canvasCtx: CanvasRenderingContext2D;
-  public xPos: number = 0;
+  public xPos: number = Trex.config.START_X_POS;
   public yPos: number = 0;
   // Position when on the ground.
   private groundYPos: number = 0;
@@ -25,10 +25,8 @@ export default class Trex {
   private jumpVelocity: number = 0;
   private reachedMinHeight: boolean = false;
   public speedDrop: boolean = false;
-  public jumpCount: number = 0;
   private jumpspotX: number = 0;
   private minJumpHeight: number;
-  public playingIntro: boolean = false;
   private midair: boolean = false;
   /**
    * T-rex player config.
@@ -38,7 +36,6 @@ export default class Trex {
     GRAVITY: 0.6,
     HEIGHT: 47,
     INIITAL_JUMP_VELOCITY: -10,
-    INTRO_DURATION: 1500,
     MAX_JUMP_HEIGHT: 30,
     MIN_JUMP_HEIGHT: 30,
     SPEED_DROP_COEFFICIENT: 3,
@@ -133,10 +130,6 @@ export default class Trex {
       this.msPerFrame = Trex.animFrames[status].msPerFrame;
       this.currentAnimFrames = Trex.animFrames[status].frames;
     }
-    // Game intro animation, T-rex moves in from the left.
-    if (this.playingIntro && this.xPos < this.config.START_X_POS) {
-      this.xPos += Math.round((this.config.START_X_POS / this.config.INTRO_DURATION) * deltaTime);
-    }
     if (this.status == Trex.status.WAITING) {
       this.blink();
     } else if (this.timer >= this.msPerFrame) {
@@ -145,7 +138,7 @@ export default class Trex {
       this.timer = 0;
     }
   }
-  
+
   public render() {
     this.canvasCtx.drawImage(
       ImageLoader.get("trex"),
@@ -222,7 +215,6 @@ export default class Trex {
     // Back down at ground level. Jump completed.
     if (this.yPos > this.groundYPos) {
       this.reset();
-      this.jumpCount++;
     }
     this.update(deltaTime);
   }
@@ -243,7 +235,6 @@ export default class Trex {
     this.update(0, Trex.status.RUNNING);
     this.midair = false;
     this.speedDrop = false;
-    this.jumpCount = 0;
   }
 
   public getCollisionBox(): CollisionBox {
