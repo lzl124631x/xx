@@ -40,6 +40,10 @@ interface RunnerConfig {
 // Used for conversion from pixel distance to a scaled unit.
 const DIST_COEFFICIENT = 0.025;
 
+wx.onShow(() => {
+  SoundLoader.play(SoundId.BGM)
+});
+
 class Runner {
   /**
    * Runner event names.

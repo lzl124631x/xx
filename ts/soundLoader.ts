@@ -28,8 +28,7 @@ class SoundLoader {
 
       sound.loop = !!s.loop;
       this.sounds[s.id] = sound;
-    })
-    this.play(SoundId.BGM)
+    });
   }
 
   public play(id: string) {
