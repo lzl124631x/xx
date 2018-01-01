@@ -38,7 +38,6 @@ export default class Horizon {
       * Initialise the horizon. Just add the line and a cloud. No obstacles.
       */
     private init() {
-        this.addCloud();
         this.horizonLine = new HorizonLine(this.canvas, this.dimensions);
     }
     /**
@@ -57,56 +56,47 @@ export default class Horizon {
         }
     }
 
+    public render() {
+        this.horizonLine.render();
+        this.clouds.forEach(c => c.render());
+        this.obstacles.forEach(o => o.render());
+    }
+
     private updateClouds(deltaTime: number, speed: number) {
         var cloudSpeed = this.cloudSpeed / 1000 * deltaTime * speed;
-        var numClouds = this.clouds.length;
-        if (numClouds) {
-            for (var i = numClouds - 1; i >= 0; i--) {
-                this.clouds[i].update(cloudSpeed);
-            }
-            var lastCloud = this.clouds[numClouds - 1];
-            // Check for adding a new cloud.
-            if (numClouds < this.config.MAX_CLOUDS &&
-                lastCloud.needNextCloud(this.dimensions.WIDTH) &&
-                this.cloudFrequency > Math.random()) {
-                this.addCloud();
-            }
-            // Remove expired clouds.
-            this.clouds = this.clouds.filter(cloud => !cloud.remove);
+        this.clouds.forEach(c => c.update(cloudSpeed));
+        this.clouds = this.clouds.filter(cloud => cloud.isVisible());
+        // Add new cloud if needed.
+        let len = this.clouds.length;
+        if (!len ||
+            (len < this.config.MAX_CLOUDS &&
+            this.clouds[len - 1].needNextCloud(this.dimensions.WIDTH) &&
+            this.cloudFrequency > Math.random())) {
+            this.addCloud();
         }
+    }
+
+    private addCloud() {
+        this.clouds.push(new Cloud(this.canvas, this.dimensions.WIDTH));
     }
 
     private updateObstacles(deltaTime:number, currentSpeed:number) {
         // Obstacles, move to Horizon layer.
         this.obstacles.forEach(obstacle => obstacle.update(deltaTime, currentSpeed));
-        this.obstacles = this.obstacles.filter(obstacle => !obstacle.remove);
-        if (this.obstacles.length > 0) {
-            var lastObstacle = this.obstacles[this.obstacles.length - 1];
-            if (lastObstacle.isNextObstacleNeeded(this.dimensions.WIDTH)) {
-                this.addNewObstacle(currentSpeed);
-                lastObstacle.followingObstacleCreated = true;// TODO: remove if flag if possible.
-            }
-        } else {
-            // Create new obstacles.
-            this.addNewObstacle(currentSpeed);
+        this.obstacles = this.obstacles.filter(obstacle => obstacle.isVisible());
+        // Add new obstacle if needed.
+        let len = this.obstacles.length;
+        if (!len || this.obstacles[len - 1].needNextObstacle(this.dimensions.WIDTH)) {
+            this.addObstacle(currentSpeed);
         }
     }
 
-    private addNewObstacle(currentSpeed: number) {
+    private addObstacle(currentSpeed: number) {
         this.obstacles.push(Obstacle.randomCreate(this.canvasCtx, this.dimensions, currentSpeed));
     }
-    /**
-     * Reset the horizon layer.
-     * Remove existing obstacles and reposition the horizon line.
-     */
+
     public reset() {
         this.obstacles = [];
         this.horizonLine.reset();
-    }
-    /**
-     * Add a new cloud to the horizon.
-     */
-    private addCloud() {
-        this.clouds.push(new Cloud(this.canvas, this.dimensions.WIDTH));
     }
 }

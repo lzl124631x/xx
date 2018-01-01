@@ -178,9 +178,7 @@ class Runner {
     this.canvasCtx.fillStyle = "#fff";
     this.canvasCtx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
-  /**
-   * Update the game frame.
-   */
+
   private update() {
     // TODO: add drawPending logic.
     var now = getTimeStamp();
@@ -230,6 +228,11 @@ class Runner {
     }
   }
 
+  private render() {
+    this.tRex.render();
+    this.horizon.render();
+  }
+
   private startListening() {
     this.canvas.addEventListener(Runner.events.TOUCHSTART, this.onTouchStart.bind(this));
     this.canvas.addEventListener(Runner.events.TOUCHEND, this.onTouchEnd.bind(this));
@@ -268,9 +271,6 @@ class Runner {
     }
   }
 
-  /**
-   * RequestAnimationFrame wrapper.
-   */
   private loop() {
       this.update();
       this.render();
@@ -279,10 +279,6 @@ class Runner {
         return;
       }
       this.startLoop();
-  }
-
-  private render() {
-    this.tRex.render();
   }
 
   private isRunning() {
@@ -328,6 +324,7 @@ class Runner {
     if (!this.raqId) {
       this.playCount++;
       this.runningTime = 0;
+      this.currentSpeed = this.config.SPEED;
       this.activated = true;
       this.isGameOver = false;
       this.distanceRan = 0;

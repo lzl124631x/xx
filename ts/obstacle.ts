@@ -65,12 +65,10 @@ export default class Obstacle {
     ];
     // The count of cactus in one group
     public size: number = getRandomNum(1, Obstacle.MAX_OBSTACLE_LENGTH);
-    public remove = false;
     public xPos: number = 0;
     public yPos: number = 0;
     public collisionBoxes: CollisionBox[] = [];
     public gap = 0;
-    public followingObstacleCreated: boolean = false;
     private width: number;
 
     private static _constructor = (() => {
@@ -101,7 +99,6 @@ export default class Obstacle {
         }
         this.width = this.typeConfig.width * this.size;
         this.xPos = this.dimensions.WIDTH - this.width;
-        this.draw();
         // Make collision box adjustments,
         // Central box is adjusted to the size as one box.
         // ____ ______ ________
@@ -120,7 +117,7 @@ export default class Obstacle {
     /**
      * Draw and crop based on size.
      */
-    private draw() {
+    public render() {
         var sourceWidth = this.typeConfig.width;
         var sourceHeight = this.typeConfig.height;
         if (IS_HIDPI) {
@@ -141,13 +138,7 @@ export default class Obstacle {
      * Obstacle frame update.
      */
     public update(deltaTime: number, speed: number) {
-        if (!this.remove) {
-            this.xPos -= Math.floor((speed * FPS / 1000) * deltaTime);
-            this.draw();
-            if (!this.isVisible()) {
-                this.remove = true;
-            }
-        }
+        this.xPos -= Math.floor((speed * FPS / 1000) * deltaTime);
     }
     /**
      * Calculate a random gap size.
@@ -180,8 +171,8 @@ export default class Obstacle {
         }
     }
 
-    public isNextObstacleNeeded(width: number): boolean {
-        return !this.followingObstacleCreated && this.isVisible() &&
+    public needNextObstacle(width: number): boolean {
+        return this.isVisible() &&
                 (this.xPos + this.width + this.gap) < width;
     }
 

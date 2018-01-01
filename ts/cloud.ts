@@ -1,9 +1,9 @@
 import { getRandomNum, IS_HIDPI } from "./globals";
 import Sprite from "./base/sprite";
 
-const IMG_ID = "cloud"
-const WIDTH   = 46
-const HEIGHT  = 14
+const IMG_ID = "cloud";
+const WIDTH = 46;
+const HEIGHT = 14;
 const MAX_SKY_LEVEL = 30;
 const MIN_SKY_LEVEL = 71;
 const MAX_CLOUD_GAP = 400;
@@ -14,7 +14,6 @@ const MIN_CLOUD_GAP = 100;
 */
 export default class Cloud extends Sprite {
     private canvasCtx: CanvasRenderingContext2D
-    public remove: boolean = false;
     public cloudGap = getRandomNum(MIN_CLOUD_GAP, MAX_CLOUD_GAP);
     constructor(private canvas: HTMLCanvasElement, private containerWidth: number) {
         super(IMG_ID, WIDTH, HEIGHT);
@@ -24,17 +23,14 @@ export default class Cloud extends Sprite {
     }
 
     public update(speed: number) {
-        if (!this.remove) {
-            this.x -= Math.ceil(speed);
-            this.drawToCanvas(this.canvasCtx);
-            // Mark as removeable if no longer in the canvas.
-            if (!this.isVisible()) {
-                this.remove = true;
-            }
-        }
+        this.x -= Math.ceil(speed);
     }
 
-    private isVisible(): boolean {
+    public render() {
+        this.drawToCanvas(this.canvasCtx);
+    }
+
+    public isVisible(): boolean {
         return this.x + WIDTH > 0;
     }
 

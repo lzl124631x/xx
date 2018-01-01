@@ -15,7 +15,6 @@ export default class HorizonLine extends Sprite {
     constructor(private canvas: HTMLCanvasElement, dimensions: any) {
         super(IMG_ID, WIDTH, HEIGHT, 0, dimensions.HEIGHT - 20);// TODO: this 20 is dependent to outer settings.
         this.canvasCtx = canvas.getContext('2d');
-        this.draw();
     }
 
     /**
@@ -24,10 +23,21 @@ export default class HorizonLine extends Sprite {
     private getRandomType() {
         return Math.random() > this.bumpThreshold ? this.width : 0;
     }
-    /**
-     * Draw the horizon line.
-     */
-    private draw() {
+
+    // TODO: make this impl. the same as the original.
+    private updateXPos(increment: number) {
+        this.x -= increment;
+        if (this.x <= -this.width) {
+            this.x = this.width;
+        }
+    }
+
+    public update(deltaTime: number, speed: number) {
+        var increment = Math.floor(speed * (FPS / 1000) * deltaTime);
+        this.updateXPos(increment);
+    }
+
+    public render() {
         this.canvasCtx.drawImage(
             this.image,
             0,
@@ -52,23 +62,6 @@ export default class HorizonLine extends Sprite {
             this.height);
     }
 
-    // TODO: make this impl. the same as the original.
-    private updateXPos(increment: number) {
-        this.x -= increment;
-        if (this.x <= -this.width) {
-            this.x = this.width;
-        }
-    }
-    /**
-     * Update the horizon line.
-     * @param {number} deltaTime
-     * @param {number} speed
-     */
-    public update(deltaTime: number, speed: number) {
-        var increment = Math.floor(speed * (FPS / 1000) * deltaTime);
-        this.updateXPos(increment);
-        this.draw();
-    }
     /**
      * Reset horizon to the starting position.
      */
