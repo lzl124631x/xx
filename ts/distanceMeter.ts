@@ -42,9 +42,13 @@ export default class DistanceMeter {
     private defaultString: string = '';
     private flashTimer: number = 0;
     private flashIterations: number = 0;
+
+    private static _constructor = (() => {
+        ImageLoader.get("text");
+    })();
+
     constructor(private canvas: HTMLCanvasElement, canvasWidth: number) {
         this.canvasCtx = canvas.getContext('2d');
-        ImageLoader.load("text");
         this.init(canvasWidth);
     }
     /**

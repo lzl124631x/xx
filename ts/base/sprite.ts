@@ -4,7 +4,7 @@ export default class Sprite {
   protected image: HTMLImageElement = null;
   private visible: boolean = true;
   constructor(imgId, protected width: number, protected height: number, protected x: number = 0, protected y: number = 0) {
-    this.image = ImageLoader.load(imgId);
+    this.image = ImageLoader.get(imgId);
   }
 
   drawToCanvas(ctx) {

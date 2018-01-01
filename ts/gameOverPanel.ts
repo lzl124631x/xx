@@ -1,4 +1,4 @@
-import { IS_HIDPI, IHashMap} from "./globals";
+import { IS_HIDPI, IHashMap } from "./globals";
 import ImageLoader from "./imageLoader";
 
 const imageResources = ["text", "restart"];
@@ -17,9 +17,13 @@ export default class GameOverPanel {
         RESTART_HEIGHT: 32
     };
     private canvasCtx: CanvasRenderingContext2D;
+
+    private static _construstor = (() => {
+        imageResources.forEach(id => ImageLoader.get(id));
+    })();
+
     constructor(private canvas: HTMLCanvasElement, private canvasDimensions: IHashMap<number>) {
         this.canvasCtx = canvas.getContext('2d');
-        imageResources.forEach(id => ImageLoader.load(id));
         this.draw();
     }
 

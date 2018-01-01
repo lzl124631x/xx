@@ -15,15 +15,7 @@ interface ObstacleType {
 
 // This value should be grow smaller as game goes on to increase difficulty.
 const GAP_COEFFICIENT = 0.6;
-/**
-* Obstacle.
-* @param {HTMLCanvasCtx} canvasCtx
-* @param {Obstacle.type} type
-* @param {image} obstacleImg Image sprite.
-* @param {Object} dimensions
-* @param {number} gapCoefficient Mutipler in determining the gap.
-* @param {number} speed
-*/
+
 export default class Obstacle {
     private static readonly imageSources = {
       'CACTUS_LARGE': 'obstacle-large',
@@ -80,10 +72,14 @@ export default class Obstacle {
     public gap = 0;
     public followingObstacleCreated: boolean = false;
     private width: number;
-    constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>, speed: number) {
-        let typeName = typeConfig.type;
-        ImageLoader.load(Obstacle.imageSources[typeName])// TODO: enable LDPI and HDPI.
 
+    private static _constructor = (() => {
+        Object.keys(Obstacle.imageSources).forEach(key => {
+            ImageLoader.get(Obstacle.imageSources[key]);
+        });
+    })();
+
+    constructor(private canvasCtx: CanvasRenderingContext2D, private typeConfig: ObstacleType, private dimensions: IHashMap<number>, speed: number) {
         this.yPos = this.typeConfig.yPos + this.dimensions.HEIGHT - 150;
         this.init(speed);
     }

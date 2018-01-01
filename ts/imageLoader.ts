@@ -2,16 +2,14 @@ import { IHashMap } from "./globals";
 
 class ImageLoader {
     private images: IHashMap<HTMLImageElement> = {};
-    public load(id: string): HTMLImageElement {
-        if (this.images[id]) return this.images[id];
-        let image = new Image();
-        image.src = `asset/image/${id}.png`;
-        this.images[id] = image;
-        return image;
-    }
-
     public get(id: string): HTMLImageElement {
-        return this.images[id];
+        let image = this.images[id];
+        if (!image) {
+            image = new Image();
+            image.src = `asset/image/${id}.png`;
+            this.images[id] = image;
+        }
+        return image;
     }
 }
 

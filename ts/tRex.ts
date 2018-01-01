@@ -91,8 +91,12 @@ export default class Trex {
       msPerFrame: 1000 / 60
     }
   };
+
+  private static _constructor = (() => {
+    ImageLoader.get("trex");
+  })();
+
   constructor(private canvas: HTMLCanvasElement, height: number) {
-    ImageLoader.load("trex");
     this.init(height);
   };
   /**
