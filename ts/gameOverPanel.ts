@@ -1,4 +1,4 @@
-import { IS_HIDPI, IHashMap } from "./globals";
+import { IHashMap } from "./globals";
 import ImageLoader from "./imageLoader";
 
 const imageResources = ["text", "restart"];
@@ -57,14 +57,6 @@ export default class GameOverPanel {
         var restartSourceHeight = dimensions.RESTART_HEIGHT;
         var restartTargetX = centerX - (dimensions.RESTART_WIDTH / 2);
         var restartTargetY = this.canvasDimensions.HEIGHT / 2;
-        if (IS_HIDPI) {
-            textSourceY *= 2;
-            textSourceX *= 2;
-            textSourceWidth *= 2;
-            textSourceHeight *= 2;
-            restartSourceWidth *= 2;
-            restartSourceHeight *= 2;
-        }
         // Game over text from sprite.
         this.canvasCtx.drawImage(ImageLoader.get("text"),
             textSourceX, textSourceY, textSourceWidth, textSourceHeight,

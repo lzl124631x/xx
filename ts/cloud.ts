@@ -1,4 +1,4 @@
-import { getRandomNum, IS_HIDPI } from "./globals";
+import { getRandomNum } from "./globals";
 import Sprite from "./base/sprite";
 
 const IMG_ID = "cloud";

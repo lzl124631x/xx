@@ -1,6 +1,6 @@
 import CollisionBox from "./collisionBox";
 import Runner from "./runner";
-import { IHashMap, FPS, getTimeStamp, IS_HIDPI } from "./globals";
+import { IHashMap, FPS, getTimeStamp } from "./globals";
 import ImageLoader from "./imageLoader";
 
 // Length in ms of closing-eye period in each blink

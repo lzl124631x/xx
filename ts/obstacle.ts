@@ -1,4 +1,4 @@
-import { getRandomNum, IHashMap, FPS, IS_HIDPI } from "./globals";
+import { getRandomNum, IHashMap, FPS } from "./globals";
 import CollisionBox from "./collisionBox";
 import ImageLoader from "./imageLoader";
 
@@ -120,10 +120,6 @@ export default class Obstacle {
     public render() {
         var sourceWidth = this.typeConfig.width;
         var sourceHeight = this.typeConfig.height;
-        if (IS_HIDPI) {
-            sourceWidth = sourceWidth * 2;
-            sourceHeight = sourceHeight * 2;
-        }
         // Sprite
         var sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1));
 

@@ -1,13 +1,12 @@
-import { IHashMap, IS_HIDPI } from "./globals";
+import { IHashMap } from "./globals";
 import ImageLoader from "./imageLoader";
+import SoundLoader, { SoundId } from "./soundLoader";
 
 const config: IHashMap<number> = {
     // Number of digits.
     MAX_DISTANCE_UNITS: 5,
     // Distance that causes achievement animation.
     ACHIEVEMENT_DISTANCE: 100,
-    // Used for conversion from pixel distance to a scaled unit.
-    COEFFICIENT: 0.025,
     // Flash duration in milliseconds.
     FLASH_DURATION: 1000 / 4,
     // Flash iterations for achievement animation.
@@ -38,10 +37,11 @@ export default class DistanceMeter {
     private highScore: string[] = [];
     private container: number = null;
     private digits: string[] = [];
-    public acheivement: boolean = false;
+    public achievement: boolean = false;
     private defaultString: string = '';
     private flashTimer: number = 0;
     private flashIterations: number = 0;
+    private flashing: boolean = false;
 
     private static _constructor = (() => {
         ImageLoader.get("text");
@@ -87,12 +87,6 @@ export default class DistanceMeter {
         var targetY = this.y;
         var targetWidth = DistanceMeter.dimensions.WIDTH;
         var targetHeight = DistanceMeter.dimensions.HEIGHT;
-        // For high DPI we 2x source values.
-        if (IS_HIDPI) {
-            sourceWidth *= 2;
-            sourceHeight *= 2;
-            sourceX *= 2;
-        }
         this.canvasCtx.save();
         if (opt_highScore) {
             // Left of the current score.
@@ -115,33 +109,22 @@ export default class DistanceMeter {
         );
         this.canvasCtx.restore();
     }
-    /**
-     * Covert pixel distance to a 'real' distance.
-     * @param {number} distance Pixel distance ran.
-     * @return {number} The 'real' distance ran.
-     */
-    public getActualDistance(distance: number): number {
-        return distance ?
-            Math.round(distance * config.COEFFICIENT) : 0;
-    }
+
     /**
      * Update the distance meter.
      * @param {number} deltaTime
      * @param {number} distance
-     * @return {boolean} Whether the acheivement sound fx should be played.
      */
-    public update(deltaTime: number, distance?: number): boolean {
-        var paint = true;
-        var playSound = false;
-        if (!this.acheivement) {
-            distance = this.getActualDistance(distance);
+    public update(deltaTime: number, distance?: number) {
+        this.flashing = false;
+        if (!this.achievement) {
             if (distance > 0) {
-                // Acheivement unlocked
+                // Achievement unlocked
                 if (distance % config.ACHIEVEMENT_DISTANCE == 0) {
                     // Flash score and play sound.
-                    this.acheivement = true;
+                    this.achievement = true;
                     this.flashTimer = 0;
-                    playSound = true;
+                    SoundLoader.play(SoundId.SCORE_REACHED);
                 }
                 // Create a string representation of the distance with leading 0.
                 var distanceStr = (this.defaultString +
@@ -151,30 +134,31 @@ export default class DistanceMeter {
                 this.digits = this.defaultString.split('');
             }
         } else {
-            // Control flashing of the score on reaching acheivement.
+            // Control flashing of the score on reaching achievement.
             if (this.flashIterations <= config.FLASH_ITERATIONS) {
                 this.flashTimer += deltaTime;
                 if (this.flashTimer < config.FLASH_DURATION) {
-                    paint = false;
+                    this.flashing = true;
                 } else if (this.flashTimer >
                     config.FLASH_DURATION * 2) {
                     this.flashTimer = 0;
                     this.flashIterations++;
                 }
             } else {
-                this.acheivement = false;
+                this.achievement = false;
                 this.flashIterations = 0;
                 this.flashTimer = 0;
             }
         }
-        // Draw the digits if not flashing.
-        if (paint) {
+    }
+
+    public render() {
+        if (!this.flashing) {
             for (var i = this.digits.length - 1; i >= 0; i--) {
                 this.draw(i, parseInt(this.digits[i]));
             }
         }
         this.drawHighScore();
-        return playSound;
     }
     /**
      * Draw the high score.
@@ -193,7 +177,6 @@ export default class DistanceMeter {
      * @param {number} distance Distance ran in pixels.
      */
     public setHighScore(distance: number) {
-        distance = this.getActualDistance(distance);
         var highScoreStr = (this.defaultString +
             distance).substr(-config.MAX_DISTANCE_UNITS);
         this.highScore = ['10', '11', ''].concat(highScoreStr.split(''));
@@ -203,6 +186,6 @@ export default class DistanceMeter {
      */
     public reset() {
         this.update(0);
-        this.acheivement = false;
+        this.achievement = false;
     }
 }

@@ -1,4 +1,4 @@
-import { IHashMap, IS_HIDPI, FPS } from "./globals";
+import { IHashMap, FPS } from "./globals";
 import Sprite from "./base/sprite";
 
 const IMG_ID = "horizon-line";

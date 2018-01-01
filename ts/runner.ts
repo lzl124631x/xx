@@ -1,5 +1,5 @@
 /// <reference path="./wx.d.ts"/>
-import { IHashMap, IS_HIDPI, FPS, IS_IOS, getTimeStamp, getRandomNum } from "./globals";
+import { IHashMap, FPS, IS_IOS, getTimeStamp, getRandomNum } from "./globals";
 import Trex from "./tRex";
 import Horizon from "./horizon";
 import DistanceMeter from "./distanceMeter";
@@ -51,6 +51,9 @@ interface RunnerConfig {
   [index: string]: string | number;
 }
 
+// Used for conversion from pixel distance to a scaled unit.
+const DIST_COEFFICIENT = 0.025;
+
 class Runner {
   /**
    * Runner event names.
@@ -83,7 +86,7 @@ class Runner {
   private canvasCtx: CanvasRenderingContext2D = null;
   private tRex: Trex = null;
   private distanceMeter: DistanceMeter = null;
-  private distanceRan: number = 0;
+  private distanceInPixel: number = 0;
   private highestScore: number = 0;
   // The absolute time of now.
   private time: number = 0;
@@ -185,7 +188,6 @@ class Runner {
     var deltaTime = now - (this.time || now);
     this.time = now;
     if (this.activated) {
-      this.clearCanvas();
       if (this.tRex.jumping) {
         this.tRex.updateJump(deltaTime);
       }
@@ -206,31 +208,33 @@ class Runner {
       var collision = hasObstacles &&
         checkForCollision(this.horizon.obstacles[0], this.tRex);
       if (!collision) {
-        this.distanceRan += this.currentSpeed * deltaTime / this.msPerFrame;
+        this.distanceInPixel += this.currentSpeed * deltaTime / this.msPerFrame;
         if (this.currentSpeed < this.config.MAX_SPEED) {
           this.currentSpeed += this.config.ACCELERATION;
         }
       } else {
         this.gameOver();
       }
-      if (this.distanceMeter.getActualDistance(this.distanceRan) >
+      if (this.getDistance() >
         this.distanceMeter.maxScore) {
-        this.distanceRan = 0;
+        this.distanceInPixel = 0;
       }
-      var playAcheivementSound = this.distanceMeter.update(deltaTime,
-        Math.ceil(this.distanceRan));
-      if (playAcheivementSound) {
-        SoundLoader.play(SoundId.SCORE_REACHED);
-      }
+      this.distanceMeter.update(deltaTime, this.getDistance());
     }
     if (!this.isGameOver) {
       this.tRex.update(deltaTime);
     }
   }
 
+  private getDistance() {
+    return Math.ceil(this.distanceInPixel * DIST_COEFFICIENT);
+  }
+
   private render() {
+    this.clearCanvas();
     this.tRex.render();
     this.horizon.render();
+    this.distanceMeter.render();
   }
 
   private startListening() {
@@ -290,13 +294,13 @@ class Runner {
     vibrate(200);
     this.stop();
     this.isGameOver = true;
-    this.distanceMeter.acheivement = false;
+    this.distanceMeter.achievement = false;
     this.tRex.update(100, Trex.status.CRASHED);
     // Game over panel.
     this.gameOverPanel.draw();
     // Update the high score.
-    if (this.distanceRan > this.highestScore) {
-      this.highestScore = Math.ceil(this.distanceRan);
+    if (this.getDistance() > this.highestScore) {
+      this.highestScore = this.getDistance();
       this.distanceMeter.setHighScore(this.highestScore);
     }
     // Reset the time clock.
@@ -327,7 +331,7 @@ class Runner {
       this.currentSpeed = this.config.SPEED;
       this.activated = true;
       this.isGameOver = false;
-      this.distanceRan = 0;
+      this.distanceInPixel = 0;
       this.time = getTimeStamp();
       this.clearCanvas();
       this.distanceMeter.reset(); // TODO: original code is (this.highestScore)
