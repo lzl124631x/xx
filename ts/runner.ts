@@ -86,14 +86,8 @@ class Runner {
   private obstacles: string[] = [];
   // `started` is true after first activation
   private started: boolean = false;
-  // `activated` is false only after gameover and before restart
-  private activated: boolean = false;
   // `isGameOver` is true when game over.
   private isGameOver: boolean = false;
-  // `paused` is true when game over.
-  private paused: boolean = false;
-  // # of rounds played.
-  private playCount: number = 0;
   private gameOverPanel: GameOverPanel = null;
   private playingIntro: boolean = false;
   private raqId: number = 0;
@@ -149,7 +143,6 @@ class Runner {
     if (!this.started && !this.isGameOver) {
       this.playingIntro = true;
       this.tRex.playingIntro = true;
-      this.activated = true;
       this.started = true;
       setTimeout(this.startGame.bind(this), 1000);
     } else if (this.isGameOver) {
@@ -163,7 +156,6 @@ class Runner {
     this.runningTime = 0;
     this.playingIntro = false;
     this.tRex.playingIntro = false;
-    this.playCount++;
   }
 
   private clearCanvas() {
@@ -176,7 +168,7 @@ class Runner {
     var now = getTimeStamp();
     var deltaTime = now - (this.time || now);
     this.time = now;
-    if (this.activated) {
+    if (!this.isGameOver) {
       if (this.tRex.jumping) {
         this.tRex.updateJump(deltaTime);
       }
@@ -243,9 +235,6 @@ class Runner {
     if (this.isGameOver) {
       this.restart();
     } else {
-      if (!this.activated) {
-        this.activated = true;
-      }
       if (!this.tRex.jumping) {
         SoundLoader.play(SoundId.JUMP);
         this.tRex.startJump();
@@ -254,37 +243,30 @@ class Runner {
   }
 
   private onTouchEnd(e: KeyboardEvent) {
-    if (this.isRunning()) {
-      this.tRex.endJump();
-    } else if (this.isGameOver) {
+    if (this.isGameOver) {
       // Check that enough time has elapsed before allowing jump key to restart.
       var deltaTime = getTimeStamp() - this.time;
       if (deltaTime >= this.config.GAMEOVER_CLEAR_TIME) {
         this.restart();
       }
-    } else if (this.paused) {
-      this.play();
+    } else {
+      this.tRex.endJump();
     }
   }
 
   private loop() {
-      this.update();
-      this.render();
+    this.update();
+    this.render();
 
-      if (this.isGameOver) {
-        return;
-      }
-      this.startLoop();
-  }
-
-  private isRunning() {
-    return !!this.raqId;
+    if (this.isGameOver) {
+      return;
+    }
+    this.startLoop();
   }
 
   private gameOver() {
     SoundLoader.play(SoundId.CRASH);
     vibrate(200);
-    this.stop();
     this.isGameOver = true;
     this.distanceMeter.achievement = false;
     this.tRex.update(100, Trex.status.CRASHED);
@@ -293,41 +275,20 @@ class Runner {
     this.time = getTimeStamp();
   }
 
-  private stop() {
-    this.activated = false;
-    this.paused = true;
-    cancelAnimationFrame(this.raqId);
-    this.raqId = 0;
-  }
-
-  private play() {
-    if (!this.isGameOver) {
-      this.activated = true;
-      this.paused = false;
-      this.tRex.update(0, Trex.status.RUNNING);
-      this.time = getTimeStamp();
-      this.startLoop();
-    }
-  }
-
   private restart() {
-    if (!this.raqId) {
-      this.playCount++;
-      this.runningTime = 0;
-      this.currentSpeed = this.config.SPEED;
-      this.activated = true;
-      this.isGameOver = false;
-      this.distanceInPixel = 0;
-      this.time = getTimeStamp();
-      this.distanceMeter.reset();
-      this.horizon.reset();
-      this.tRex.reset();
-      this.startLoop();
-    }
+    this.runningTime = 0;
+    this.currentSpeed = this.config.SPEED;
+    this.isGameOver = false;
+    this.distanceInPixel = 0;
+    this.time = getTimeStamp();
+    this.distanceMeter.reset();
+    this.horizon.reset();
+    this.tRex.reset();
+    this.startLoop();
   }
 
   private startLoop() {
-    this.raqId = requestAnimationFrame(this.loop.bind(this));
+    requestAnimationFrame(this.loop.bind(this));
   }
 }
 
